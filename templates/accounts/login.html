@@ -5,6 +5,8 @@
 <div class="card ft-auth-card mx-auto">
   <div class="card-body p-4">
     <h1 class="h3">Log in to FinTrack</h1>
+    {# FT-12: Read invalid-credential errors immediately after the title. #}
+    {% include "includes/form_errors.html" with form=form %}
     <p class="text-body-secondary">Welcome back.</p>
     <form method="post" novalidate>
       {% csrf_token %}
