@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'transactions',
+    # FT-04: Frontend-owned template tags and tests.
+    'ui',
 ]
 
 MIDDLEWARE = [
@@ -109,6 +111,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+# FT-04: Find the local stylesheet and vendored Bootstrap assets.
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
