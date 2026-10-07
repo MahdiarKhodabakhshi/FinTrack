@@ -1,11 +1,14 @@
 # FT-11: Register with Django's password handling and a fresh authenticated session.
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_not_required
 from django.shortcuts import redirect, render
 
 from .forms import RegistrationForm
 
 
+# FT-14: Registration must remain reachable without an existing account.
+@login_not_required
 def register(request):
     if request.user.is_authenticated:
         return redirect("transactions:list")
