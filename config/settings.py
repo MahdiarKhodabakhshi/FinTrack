@@ -120,3 +120,8 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
     'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
 ]
+
+# FT-11, FT-13: Named routes keep redirects independent of template layout.
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'transactions:list'
+LOGOUT_REDIRECT_URL = 'accounts:login'

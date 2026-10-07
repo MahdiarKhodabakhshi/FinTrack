@@ -1,2 +1,15 @@
 {% extends "base.html" %}
-{% block content %}<!-- FT-10 (Saad): Placeholder; FT-11 will supply the form. -->Log in{% endblock %}
+{% block title %}Log in — FinTrack{% endblock %}
+{% block content %}
+<!-- FT-10, FT-12 (Saad): Unstyled login placeholder; style the form errors. -->
+<h1>Log in</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}
+    <p>{{ field.label_tag }} {{ field }} {{ field.errors }}</p>
+  {% endfor %}
+  {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+  <button type="submit">Log in</button>
+</form>
+{% endblock %}
