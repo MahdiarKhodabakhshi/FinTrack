@@ -1,9 +1,18 @@
-# FT-02: Temporary public route placeholders; FT-11 replaces these views.
+# FT-11: Email login and registration endpoints.
+from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
-from django.views.generic import TemplateView
+
+from .forms import LoginForm
+from .views import register
 
 app_name = "accounts"
 urlpatterns = [
-    path("login/", TemplateView.as_view(template_name="accounts/login.html"), name="login"),
-    path("register/", TemplateView.as_view(template_name="accounts/register.html"), name="register"),
+    # FT-13: Django LogoutView accepts POST and flushes the session.
+    path("logout/", LogoutView.as_view(), name="logout"),
+    path("register/", register, name="register"),
+    path("login/", LoginView.as_view(
+        template_name="accounts/login.html",
+        authentication_form=LoginForm,
+        redirect_authenticated_user=True,
+    ), name="login"),
 ]

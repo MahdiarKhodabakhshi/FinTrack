@@ -1,2 +1,14 @@
 {% extends "base.html" %}
-{% block content %}<!-- FT-05 (Saad): Placeholder; FT-11 will supply the form. -->Register{% endblock %}
+{% block title %}Register — FinTrack{% endblock %}
+{% block content %}
+<!-- FT-05 (Saad): Unstyled registration placeholder. -->
+<h1>Register</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}
+    <p>{{ field.label_tag }} {{ field }} {{ field.errors }}</p>
+  {% endfor %}
+  <button type="submit">Register</button>
+</form>
+{% endblock %}
