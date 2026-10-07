@@ -1,14 +1,27 @@
 {% extends "base.html" %}
+{# FT-16: Responsive transaction entry without changing backend fields. #}
 {% block title %}Add transaction — FinTrack{% endblock %}
 {% block content %}
-<!-- FT-16 (Saad): Unstyled add-transaction placeholder. -->
-<h1>Add transaction</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ form.non_field_errors }}
-  {% for field in form %}
-    <p>{{ field.label_tag }} {{ field }} {{ field.errors }}</p>
-  {% endfor %}
-  <button type="submit">Save transaction</button>
-</form>
+<div class="ft-transaction-card mx-auto">
+  <a class="d-inline-block mb-3" href="{% url 'transactions:list' %}">← Back to transactions</a>
+  <div class="card">
+    <div class="card-body p-4">
+      <h1 class="h3 mb-3">Add a transaction</h1>
+      {% include "includes/form_errors.html" with form=form %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">{% include "includes/form_field.html" with field=form.transaction_type only %}</div>
+          <div class="col-md-6">{% include "includes/form_field.html" with field=form.amount prefix="$" inputmode="decimal" placeholder="0.00" only %}</div>
+        </div>
+        {% include "includes/form_field.html" with field=form.date only %}
+        {% include "includes/form_field.html" with field=form.description placeholder="e.g. Groceries, Paycheque" only %}
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <button type="submit" class="btn btn-primary">Save transaction</button>
+          <a class="btn btn-link" href="{% url 'transactions:list' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}
