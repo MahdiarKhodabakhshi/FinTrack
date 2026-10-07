@@ -1,17 +1,31 @@
 {% extends "base.html" %}
+{% load ui %}
+{# FT-20: Newest-first history with semantic labels and signed money. #}
 {% block title %}Transactions — FinTrack{% endblock %}
 {% block content %}
-<!-- FT-20 (Saad): Unstyled history placeholder; queryset is newest first. -->
-<h1>Transactions</h1>
-<table>
-  <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th></tr></thead>
-  <tbody>
-  {% for transaction in transactions %}
-    <tr><td>{{ transaction.date }}</td><td>{{ transaction.get_transaction_type_display }}</td><td>{{ transaction.description }}</td><td>{{ transaction.amount }}</td></tr>
-  {% empty %}
-    <!-- FT-22 (Saad): Replace this placeholder empty-state message. -->
-    <tr><td colspan="4">No transactions yet.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+  <div>
+    <h1 class="h3 mb-0">Transactions</h1>
+    <p class="text-body-secondary mb-0 mt-1">Newest first</p>
+  </div>
+  <a class="btn btn-primary align-self-start" href="{% url 'transactions:add' %}">Add transaction</a>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <caption class="visually-hidden">Your transactions, newest first</caption>
+      <thead><tr><th scope="col">Date</th><th scope="col">Type</th><th scope="col">Description</th><th scope="col" class="text-end">Amount</th></tr></thead>
+      <tbody>
+      {% for t in transactions %}
+        <tr>
+          <td class="ft-date text-nowrap"><time datetime="{{ t.date|date:'Y-m-d' }}">{{ t.date|date:"M j, Y" }}</time></td>
+          <td><span class="badge rounded-pill {% if t.transaction_type == 'income' %}ft-badge-income{% else %}ft-badge-expense{% endif %}">{{ t.get_transaction_type_display }}</span></td>
+          <td class="ft-description">{% if t.description %}{{ t.description }}{% else %}<span class="text-body-secondary">—</span>{% endif %}</td>
+          <td class="ft-money text-end text-nowrap {% if t.transaction_type == 'income' %}ft-income{% else %}ft-expense{% endif %}">{{ t.signed_amount|money:"signed" }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}
