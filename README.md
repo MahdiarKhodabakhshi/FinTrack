@@ -18,6 +18,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for branching and review rules (FT-01).
 
 ## Backend contract for templates
 
+FT-02: The shared template is `templates/base.html`, with `title` and `content`
+blocks and Django's `user` and `messages` context. Authentication and transaction
+URL contracts will be added in Phases 2 and 3.
+
 ### Transactions (FT-18, FT-21)
 
 | URL name | Path | Template | Context |
@@ -38,10 +42,6 @@ and owns `transactions/tests/test_add_transaction.py` (FT-19) and
 Mahdiar's ownership tests are in `transactions/tests/test_ownership.py`.
 Sprint 2 edit/delete views (FT-24 to FT-27) must use
 `get_user_transaction_or_404(user, pk)`; another user's record returns 404.
-
-FT-02: The shared template is `templates/base.html`, with `title` and `content`
-blocks and Django's `user` and `messages` context. Authentication and transaction
-URL contracts will be added in Phases 2 and 3.
 
 ## Setup (FT-02)
 
