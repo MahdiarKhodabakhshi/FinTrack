@@ -43,7 +43,8 @@ main { flex: 1; }
 .navbar-brand { color: var(--ft-primary); font-weight: 700; }
 .navbar-nav { --bs-navbar-active-color: var(--ft-primary); }
 .nav-link.active { font-weight: 600; }
-:focus-visible { outline: 3px solid var(--ft-primary); outline-offset: 3px; }
+.navbar .text-body-secondary { max-width: 18rem; overflow-wrap: anywhere; }
+:is(a, button, input, select, textarea):focus-visible { outline: 3px solid var(--ft-primary); outline-offset: 3px; }
 .form-control:focus, .form-select:focus, .form-check-input:focus {
   border-color: var(--ft-primary);
   box-shadow: 0 0 0 0.25rem var(--bs-focus-ring-color);
