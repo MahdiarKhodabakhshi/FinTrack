@@ -18,6 +18,27 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for branching and review rules (FT-01).
 
 ## Backend contract for templates
 
+### Transactions (FT-18, FT-21)
+
+| URL name | Path | Template | Context |
+| --- | --- | --- | --- |
+| `transactions:list` | `/transactions/` | `transactions/transaction_list.html` | `transactions` and `object_list`: signed-in user's records, ordered by descending date then creation time; `view`, `is_paginated=False`, `paginator=None`, `page_obj=None` |
+| `transactions:add` | `/transactions/add/` | `transactions/transaction_form.html` | `form`: TransactionForm with transaction_type, amount, date, description; `view`, `object=None` |
+
+Both pages require login, even before the authentication PR is merged. A valid
+add POST assigns the session user, adds a success message, and redirects to
+`transactions:list`. The form never includes `user`; forged ownership is ignored.
+Amounts are Decimal values; type is `income` or `expense`. The date widget uses
+`type="date"`. Templates share `user`, `request`, and `messages` context.
+
+Saad replaces the unstyled form (FT-16), history table (FT-20), and marked empty
+row (FT-22). Tom adds FT-17 validation at the marker in `transactions/forms.py`
+and owns `transactions/tests/test_add_transaction.py` (FT-19) and
+`transactions/tests/test_history.py` (FT-23). Model validation remains the baseline.
+Mahdiar's ownership tests are in `transactions/tests/test_ownership.py`.
+Sprint 2 edit/delete views (FT-24 to FT-27) must use
+`get_user_transaction_or_404(user, pk)`; another user's record returns 404.
+
 FT-02: The shared template is `templates/base.html`, with `title` and `content`
 blocks and Django's `user` and `messages` context. Authentication and transaction
 URL contracts will be added in Phases 2 and 3.
