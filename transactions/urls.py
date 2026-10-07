@@ -1,11 +1,10 @@
-# FT-02: Protected placeholders; FT-18 and FT-21 replace these views.
-from django.contrib.auth.decorators import login_required
+# FT-18, FT-21: Both endpoints explicitly require a signed-in user.
 from django.urls import path
-from django.views.generic import TemplateView
+
+from .views import TransactionCreateView, TransactionListView
 
 app_name = "transactions"
-placeholder = login_required(TemplateView.as_view(template_name="base.html"), login_url="accounts:login")
 urlpatterns = [
-    path("", placeholder, name="list"),
-    path("add/", placeholder, name="add"),
+    path("", TransactionListView.as_view(), name="list"),
+    path("add/", TransactionCreateView.as_view(), name="add"),
 ]
