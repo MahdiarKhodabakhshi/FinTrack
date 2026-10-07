@@ -18,9 +18,31 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for branching and review rules (FT-01).
 
 ## Backend contract for templates
 
-FT-02: The shared template is `templates/base.html`, with `title` and `content`
-blocks and Django's `user` and `messages` context. Authentication and transaction
-URL contracts will be added in Phases 2 and 3.
+FT-02: `templates/base.html` exposes `title` and `content` blocks, plus shared
+`user`, `request`, and `messages` context. All forms use POST with a CSRF token.
+
+### Authentication (FT-07, FT-11, FT-13, FT-14)
+
+| URL name | Path | Template | Context |
+| --- | --- | --- | --- |
+| `accounts:register` | `/accounts/register/` | `accounts/register.html` | `form`: RegistrationForm with name, email, password1, password2 |
+| `accounts:login` | `/accounts/login/` | `accounts/login.html` | `form`: LoginForm with username (label Email) and password; `next`, `site`, `site_name` |
+| `accounts:logout` | `/accounts/logout/` | None (POST then redirect) | No page context |
+
+Registration signs the new user in and redirects to `transactions:list` with a
+success message. Login respects a safe `next` destination, otherwise it redirects
+to `transactions:list`. Already signed-in users skip login and registration.
+Logout ends the session and redirects to `accounts:login`; GET returns 405 for a
+signed-in user. Passwords use Argon2 and Django's baseline validators.
+
+Saad owns the unstyled registration (FT-05) and login (FT-10) placeholders and
+styles `form.non_field_errors` for FT-12. The login POST field name stays
+`username` even though its label and widget are Email. Render field errors and
+`form.non_field_errors`, and retain login's hidden `next` field.
+Tom adds FT-06 and FT-08 rules at the markers in `accounts/forms.py`, and owns
+`accounts/tests/test_registration.py` (FT-09) and `accounts/tests/test_login.py`
+(FT-15). Mahdiar's security checks are in `accounts/tests/test_security.py`.
+The transaction contract arrives in the independent Phase 3 PR.
 
 ## Setup (FT-02)
 
