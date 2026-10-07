@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load ui %}
-{# FT-20: Newest-first history with semantic labels and signed money. #}
+{# FT-20, FT-22: Newest-first history or a clear invitation to add the first record. #}
 {% block title %}Transactions — FinTrack{% endblock %}
 {% block content %}
 <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
@@ -10,6 +10,7 @@
   </div>
   <a class="btn btn-primary align-self-start" href="{% url 'transactions:add' %}">Add transaction</a>
 </div>
+{% if transactions %}
 <div class="card">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
@@ -28,4 +29,17 @@
     </table>
   </div>
 </div>
+{% else %}
+<div class="card text-center">
+  <div class="card-body py-5 px-4">
+    <svg class="ft-empty-mark mb-3" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+      <rect x="10" y="5" width="28" height="38" rx="4"></rect>
+      <path d="M17 16h14M17 23h14M24 29v8M20 33h8"></path>
+    </svg>
+    <h2 class="h4">No transactions yet</h2>
+    <p class="text-body-secondary">Add your first income or expense to start tracking your money.</p>
+    <a class="btn btn-primary" href="{% url 'transactions:add' %}">Add your first transaction</a>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
