@@ -21,3 +21,74 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for branching and review rules (FT-01).
 FT-02: The shared template is `templates/base.html`, with `title` and `content`
 blocks and Django's `user` and `messages` context. Authentication and transaction
 URL contracts will be added in Phases 2 and 3.
+
+## Setup (FT-02)
+
+Install Python **3.12** and Git first. On Debian/Ubuntu Linux, also install the
+`python3.12-venv` package if virtual environment creation reports missing ensurepip.
+
+### macOS / Linux
+
+```bash
+git clone https://github.com/MahdiarKhodabakhshi/FinTrack.git
+cd FinTrack
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+cp .env.example .env
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+### Windows (PowerShell)
+
+```powershell
+git clone https://github.com/MahdiarKhodabakhshi/FinTrack.git
+cd FinTrack
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+If PowerShell blocks activation, allow scripts for the current session with
+`Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`, then activate again.
+Open <http://127.0.0.1:8000/>. The superuser prompt asks for email, name, and password.
+Stop the development server with Ctrl+C.
+
+`.env` is local and ignored. `DJANGO_DEBUG` defaults to False; without a secret key,
+non-debug startup fails intentionally. The supplied values are development-only.
+`DJANGO_ALLOWED_HOSTS` is comma-separated. Leave `DATABASE_URL` unset to use
+SQLite; set it to a PostgreSQL connection URL when deployed. Cookies require HTTPS
+when debug is off. All dates use America/Toronto, with timezone-aware timestamps.
+Never deploy using the example secret.
+
+Phase 1 supplies login/register page placeholders and protected transaction route
+placeholders. Authentication and transaction forms arrive through separate Phase 2
+and Phase 3 PRs. No functional registration or transaction entry exists yet.
+
+## Tests and coverage (FT-02, FT-03)
+
+With the virtual environment active and `.env` copied:
+
+```bash
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py test
+coverage run manage.py test
+coverage report
+```
+
+Optional: `coverage html` creates the ignored `htmlcov/` report.
+CI runs these checks on Python 3.12 with non-debug settings. The required GitHub
+check is the `test` job in the `CI` workflow.
+
+Mahdiar owns `accounts/tests/test_models.py` and
+`transactions/tests/test_models.py`; Tom will add the registration, login,
+add-transaction and history feature test files. Model tests cover lowercase email
+identity, superuser flags, transaction ordering, positive amounts, signed amounts,
+and cascading deletion (FT-03).
