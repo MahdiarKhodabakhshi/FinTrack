@@ -1,14 +1,21 @@
 {% extends "base.html" %}
+{# FT-05: Accessible registration using shared field rendering. #}
 {% block title %}Register — FinTrack{% endblock %}
 {% block content %}
-<!-- FT-05 (Saad): Unstyled registration placeholder. -->
-<h1>Register</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ form.non_field_errors }}
-  {% for field in form %}
-    <p>{{ field.label_tag }} {{ field }} {{ field.errors }}</p>
-  {% endfor %}
-  <button type="submit">Register</button>
-</form>
+<div class="card ft-auth-card mx-auto">
+  <div class="card-body p-4">
+    <h1 class="h3">Create your account</h1>
+    <p class="text-body-secondary">Track your income and expenses in one place.</p>
+    {% include "includes/form_errors.html" with form=form %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include "includes/form_field.html" with field=form.name autocomplete="name" autofocus=True only %}
+      {% include "includes/form_field.html" with field=form.email autocomplete="email" autofocus=False only %}
+      {% include "includes/form_field.html" with field=form.password1 autocomplete="new-password" only %}
+      {% include "includes/form_field.html" with field=form.password2 autocomplete="new-password" only %}
+      <button type="submit" class="btn btn-primary w-100">Create account</button>
+    </form>
+    <p class="text-center mt-3 mb-0">Already have an account? <a href="{% url 'accounts:login' %}">Log in</a></p>
+  </div>
+</div>
 {% endblock %}
