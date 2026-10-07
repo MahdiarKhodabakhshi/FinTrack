@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>{% block title %}FinTrack{% endblock %}</title></head>
+<body>
+<!-- FT-04 (Saad): Unstyled placeholder; replace with the shared layout. -->
+<nav>
+{% if user.is_authenticated %}
+  {% url 'transactions:list' as list_url %}
+  {% if list_url %}<a href="{{ list_url }}">Transactions</a>{% else %}Transactions{% endif %}
+  {% url 'transactions:add' as add_url %}
+  {% if add_url %}<a href="{{ add_url }}">Add transaction</a>{% else %}Add transaction{% endif %}
+  {% url 'accounts:logout' as logout_url %}
+  {% if logout_url %}<form method="post" action="{{ logout_url }}">{% csrf_token %}<button type="submit">Log out</button></form>{% else %}Log out{% endif %}
+{% else %}
+  {% url 'accounts:login' as login_url %}
+  {% if login_url %}<a href="{{ login_url }}">Log in</a>{% else %}Log in{% endif %}
+  {% url 'accounts:register' as register_url %}
+  {% if register_url %}<a href="{{ register_url }}">Register</a>{% else %}Register{% endif %}
+{% endif %}
+</nav>
+{% for message in messages %}<p>{{ message }}</p>{% endfor %}
+{% block content %}{% endblock %}
+</body>
+</html>
