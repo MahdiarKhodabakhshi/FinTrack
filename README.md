@@ -86,6 +86,22 @@ Load assets using `{% static %}`; runtime CDN access and a build step are unnece
 `extra_head` and `extra_js` are extension blocks for later sprints.
 The frontend-only `ui` app owns tags and tests and has no models.
 
+### Search, filters and CSV (FT-48 to FT-52, FT-72)
+
+`transactions:list` accepts optional GET fields `q`, `type`, `date_from`,
+`date_to`, and `sort`. Search is stripped and case-insensitive. Dates are inclusive;
+reversed ranges show an error and ignore both dates while retaining valid filters.
+Sort values are whitelisted: `newest`, `oldest`, `amount_high`, `amount_low`.
+Unknown sorts fall back to newest. FT-50 category filtering waits for FT-29 to FT-34.
+Additional list context: `filter_form`, `filters_active`, `result_count`,
+`has_any_transactions`, `export_query`, and `sort_label`. The empty-history card
+is retained; zero filtered results have a separate no-match card.
+`transactions:export` is GET `/transactions/export/`, requires login, and accepts
+the same filters/sort. It returns CSV with a UTF-8 BOM, Date/Type/Description/Amount
+columns, ISO dates, signed plain decimals, and `Cache-Control: no-store`.
+Formula-leading descriptions are prefixed with an apostrophe for spreadsheet safety.
+Only the signed-in user's rows are queried for display or export.
+
 ## Setup (FT-02)
 
 Install Python **3.12** and Git first. On Debian/Ubuntu Linux, also install the

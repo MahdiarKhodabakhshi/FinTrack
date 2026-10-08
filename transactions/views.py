@@ -55,6 +55,8 @@ class TransactionListView(LoginRequiredMixin, ListView):
             filter_form=self.filter_form,
             filters_active=filters_active(self.filter_form),
             result_count=self.object_list.count(),
+            sort_label=dict(self.filter_form.fields["sort"].choices).get(
+                getattr(self.filter_form, "cleaned_data", {}).get("sort"), "Newest first"),
             has_any_transactions=Transaction.objects.filter(user=self.request.user).exists(),
             export_query=query.urlencode(),
         )
