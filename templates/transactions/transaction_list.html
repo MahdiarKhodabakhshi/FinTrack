@@ -8,7 +8,11 @@
     <h1 class="h3 mb-0">Transactions</h1>
     <p class="text-body-secondary mb-0 mt-1">Newest first</p>
   </div>
-  <a class="btn btn-primary align-self-start" href="{% url 'transactions:add' %}">Add transaction</a>
+  <div class="d-flex flex-wrap gap-2 align-self-start">
+    {# FT-72: Carry nonempty GET parameters into the private export. #}
+    {% if has_any_transactions %}<a class="btn btn-outline-secondary" href="{% url 'transactions:export' %}{% if export_query %}?{{ export_query }}{% endif %}">Export CSV</a>{% endif %}
+    <a class="btn btn-primary" href="{% url 'transactions:add' %}">Add transaction</a>
+  </div>
 </div>
 {# FT-48 to FT-51: Accessible GET filters preserve values and successful fields. #}
 {% if has_any_transactions %}

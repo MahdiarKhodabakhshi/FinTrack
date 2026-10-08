@@ -1,5 +1,11 @@
 # FT-18: Create records for the authenticated user.
+import csv
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.utils import timezone
+from django.views.decorators.http import require_GET
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
@@ -58,3 +64,24 @@ class TransactionListView(LoginRequiredMixin, ListView):
 def get_user_transaction_or_404(user, pk):
     """FT-24 to FT-27: Sprint 2 edit/delete views must use this ownership helper."""
     return get_object_or_404(Transaction, pk=pk, user=user)
+
+
+# FT-72: Export the same user-scoped, filtered, ordered rows as the list.
+@login_required
+@require_GET
+def transaction_export_csv(request):
+    form = TransactionFilterForm(request.GET or None)
+    rows = apply_transaction_filters(Transaction.objects.filter(user=request.user), form)
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="fintrack-transactions-{timezone.localdate():%Y-%m-%d}.csv"'
+    response["Cache-Control"] = "no-store"
+    response.write("\ufeff")
+    writer = csv.writer(response)
+    writer.writerow(["Date", "Type", "Description", "Amount"])
+    for record in rows.iterator():
+        description = record.description
+        if description.startswith(("=", "+", "-", "@", "\t", "\r")):
+            description = "'" + description
+        writer.writerow([record.date.isoformat(), record.get_transaction_type_display(),
+                         description, f"{record.signed_amount:.2f}"])
+    return response
