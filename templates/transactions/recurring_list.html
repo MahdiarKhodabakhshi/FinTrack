@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load ui %}
+{# FT-75, FT-76: Private recurring rules with explicit POST pause/resume actions. #}
+{% block title %}Recurring transactions — FinTrack{% endblock %}
+{% block content %}
+<div class="d-flex flex-column flex-sm-row justify-content-between gap-3 mb-4">
+  <div><h1 class="h3 mb-0">Recurring transactions</h1><p class="text-body-secondary mt-1 mb-0">Entries are added automatically on each due date</p></div>
+  <a class="btn btn-primary align-self-start" href="{% url 'transactions:recurring_add' %}">Add recurring</a>
+</div>
+{% if rules %}
+<div class="card"><div class="table-responsive">
+  <table class="table table-hover align-middle mb-0">
+    <caption class="visually-hidden">Your recurring transactions and schedules</caption>
+    <thead><tr><th scope="col">Description</th><th scope="col">Type</th><th scope="col" class="text-end">Amount</th><th scope="col">Repeats</th><th scope="col">Next date</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
+    <tbody>{% for rule in rules %}
+      <tr>
+        <td class="ft-description">{{ rule.description }}</td>
+        <td><span class="badge rounded-pill {% if rule.transaction_type == 'income' %}ft-badge-income{% else %}ft-badge-expense{% endif %}">{{ rule.get_transaction_type_display }}</span></td>
+        <td class="ft-money text-end text-nowrap {% if rule.transaction_type == 'income' %}ft-income{% else %}ft-expense{% endif %}">{{ rule.signed_amount|money:"signed" }}</td>
+        <td>{{ rule.get_frequency_display }}</td>
+        <td class="ft-date text-nowrap">{% if rule.is_ended %}Ended{% else %}<time datetime="{{ rule.next_due_date|date:'Y-m-d' }}">{{ rule.next_due_date|date:"M j, Y" }}</time>{% endif %}</td>
+        <td><span class="badge {% if rule.is_active %}text-bg-success{% else %}text-bg-secondary{% endif %}">{% if rule.is_active %}Active{% else %}Paused{% endif %}</span></td>
+        <td><div class="d-flex gap-2 align-items-center">
+          <form method="post" action="{% url 'transactions:recurring_toggle' rule.pk %}">{% csrf_token %}<button class="btn btn-outline-secondary btn-sm" type="submit" aria-label="{% if rule.is_active %}Pause{% else %}Resume{% endif %} {{ rule.description }}">{% if rule.is_active %}Pause{% else %}Resume{% endif %}</button></form>
+          <a class="btn btn-link btn-sm" href="{% url 'transactions:recurring_delete' rule.pk %}" aria-label="Delete {{ rule.description }}">Delete</a>
+        </div></td>
+      </tr>
+    {% endfor %}</tbody>
+  </table>
+</div></div>
+{% else %}
+<div class="card text-center"><div class="card-body p-5">
+  <h2 class="h4">No recurring transactions yet</h2>
+  <p class="text-body-secondary">Set up repeating income or expenses. Due entries appear when you visit your history or recurring transactions.</p>
+  <a class="btn btn-primary" href="{% url 'transactions:recurring_add' %}">Add your first recurring transaction</a>
+</div></div>
+{% endif %}
+{% endblock %}

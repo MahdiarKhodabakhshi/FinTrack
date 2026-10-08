@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{# FT-75: Shared accessible fields for a new recurring schedule. #}
+{% block title %}Add recurring transaction — FinTrack{% endblock %}
+{% block content %}
+<div class="ft-transaction-card mx-auto">
+  <a class="d-inline-block mb-3" href="{% url 'transactions:recurring_list' %}">← Back to recurring transactions</a>
+  <div class="card"><div class="card-body p-4">
+    <h1 class="h3">Add recurring transaction</h1>
+    {% include "includes/form_errors.html" with form=form %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-6">{% include "includes/form_field.html" with field=form.transaction_type only %}</div>
+        <div class="col-md-6">{% include "includes/form_field.html" with field=form.amount prefix="$" inputmode="decimal" placeholder="0.00" only %}</div>
+      </div>
+      {% include "includes/form_field.html" with field=form.description placeholder="e.g. Rent, Paycheque" only %}
+      {% include "includes/form_field.html" with field=form.frequency only %}
+      {% include "includes/form_field.html" with field=form.start_date only %}
+      {% include "includes/form_field.html" with field=form.end_date only %}
+      <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary">Create recurring transaction</button>
+        <a class="btn btn-link" href="{% url 'transactions:recurring_list' %}">Cancel</a>
+      </div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}
