@@ -14,6 +14,7 @@ from django.views.generic import CreateView, ListView
 from .filters import TransactionFilterForm, apply_transaction_filters, filters_active
 from .forms import TransactionForm
 from .models import Transaction
+from .recurring import generate_due_transactions
 
 
 class TransactionCreateView(LoginRequiredMixin, CreateView):
@@ -36,6 +37,11 @@ class TransactionListView(LoginRequiredMixin, ListView):
     model = Transaction
     context_object_name = "transactions"
     template_name = "transactions/transaction_list.html"
+
+    # FT-76: Lazy, idempotent catch-up happens before filtering the history.
+    def get(self, request, *args, **kwargs):
+        generate_due_transactions(user=request.user)
+        return super().get(request, *args, **kwargs)
 
     # FT-48 to FT-51: Start with ownership, then reuse the shared filter pipeline.
     def get_queryset(self):
