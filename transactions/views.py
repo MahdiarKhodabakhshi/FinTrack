@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView
 
+from .filters import TransactionFilterForm, apply_transaction_filters, filters_active
 from .forms import TransactionForm
 from .models import Transaction
 
@@ -30,8 +31,28 @@ class TransactionListView(LoginRequiredMixin, ListView):
     context_object_name = "transactions"
     template_name = "transactions/transaction_list.html"
 
+    # FT-48 to FT-51: Start with ownership, then reuse the shared filter pipeline.
     def get_queryset(self):
-        return Transaction.objects.filter(user=self.request.user)
+        self.filter_form = TransactionFilterForm(self.request.GET or None)
+        return apply_transaction_filters(Transaction.objects.filter(user=self.request.user), self.filter_form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = self.request.GET.copy()
+        for key, values in list(query.lists()):
+            nonempty = [value for value in values if value]
+            if nonempty:
+                query.setlist(key, nonempty)
+            else:
+                del query[key]
+        context.update(
+            filter_form=self.filter_form,
+            filters_active=filters_active(self.filter_form),
+            result_count=self.object_list.count(),
+            has_any_transactions=Transaction.objects.filter(user=self.request.user).exists(),
+            export_query=query.urlencode(),
+        )
+        return context
 
 
 def get_user_transaction_or_404(user, pk):
