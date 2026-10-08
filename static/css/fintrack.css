@@ -67,3 +67,7 @@ main { flex: 1; }
 .table { --bs-table-bg: var(--ft-surface); --bs-table-border-color: var(--ft-border); }
 .table > :not(caption) > * > * { padding: 1rem; }
 .ft-empty-mark { width: 3rem; height: 3rem; color: var(--ft-primary); }
+
+/* FT-48 to FT-51: Compact visible labels without changing shared form markup. */
+.ft-filter-bar .form-label { font-size: 0.875rem; }
+.ft-filter-bar .mb-3 { margin-bottom: 0 !important; }
