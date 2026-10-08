@@ -23,7 +23,7 @@ class RegistrationTests(TestCase):
 
     def test_valid_registration_creates_user_logs_in_and_shows_success(self):
         response = self.submit(email='  NEW@EXAMPLE.COM  ', name='  New Member  ', is_staff='true', is_superuser='true')
-        self.assertRedirects(response, reverse('transactions:list'))
+        self.assertRedirects(response, reverse('transactions:list'), fetch_redirect_response=False)
         user = User.objects.get()
         self.assertEqual(user.email, 'new@example.com')
         self.assertEqual(user.name, 'New Member')

@@ -34,7 +34,7 @@ class AddTransactionTests(TestCase):
         for kind in ('income', 'expense'):
             with self.subTest(kind=kind):
                 response = self.submit(transaction_type=kind, description=f'{kind} saved')
-                self.assertRedirects(response, reverse('transactions:list'))
+                self.assertRedirects(response, reverse('transactions:list'), fetch_redirect_response=False)
                 record = Transaction.objects.get(description=f'{kind} saved')
                 self.assertEqual(record.user, self.user)
                 self.assertEqual(record.transaction_type, kind)
