@@ -12,7 +12,7 @@ FinTrack is a personal finance web app for a three-person university Scrum proje
 
 Python 3.12, Django 5.2 LTS, Django templates, Argon2, python-dotenv,
 dj-database-url, psycopg, SQLite locally, PostgreSQL when deployed,
-Django's built-in tests, coverage, and GitHub Actions. Saad adds Bootstrap 5 later.
+Django's built-in tests, coverage, GitHub Actions, and vendored Bootstrap 5.3.8.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for branching and review rules (FT-01).
 
@@ -35,14 +35,13 @@ to `transactions:list`. Already signed-in users skip login and registration.
 Logout ends the session and redirects to `accounts:login`; GET returns 405 for a
 signed-in user. Passwords use Argon2 and Django's baseline validators.
 
-Saad owns the unstyled registration (FT-05) and login (FT-10) placeholders and
-styles `form.non_field_errors` for FT-12. The login POST field name stays
+Registration (FT-05) and login (FT-10) share accessible field rendering and
+non-field error alerts (FT-12). The login POST field name stays
 `username` even though its label and widget are Email. Render field errors and
 `form.non_field_errors`, and retain login's hidden `next` field.
 Tom adds FT-06 and FT-08 rules at the markers in `accounts/forms.py`, and owns
 `accounts/tests/test_registration.py` (FT-09) and `accounts/tests/test_login.py`
 (FT-15). Mahdiar's security checks are in `accounts/tests/test_security.py`.
-The transaction contract arrives in the independent Phase 3 PR.
 
 ### Transactions (FT-18, FT-21)
 
@@ -57,13 +56,35 @@ add POST assigns the session user, adds a success message, and redirects to
 Amounts are Decimal values; type is `income` or `expense`. The date widget uses
 `type="date"`. Templates share `user`, `request`, and `messages` context.
 
-Saad replaces the unstyled form (FT-16), history table (FT-20), and marked empty
-row (FT-22). Tom adds FT-17 validation at the marker in `transactions/forms.py`
+The form (FT-16), history table (FT-20), and empty-state card (FT-22) share
+the frontend conventions below. Tom adds FT-17 validation in `transactions/forms.py`
 and owns `transactions/tests/test_add_transaction.py` (FT-19) and
 `transactions/tests/test_history.py` (FT-23). Model validation remains the baseline.
 Mahdiar's ownership tests are in `transactions/tests/test_ownership.py`.
 Sprint 2 edit/delete views (FT-24 to FT-27) must use
 `get_user_transaction_or_404(user, pk)`; another user's record returns 404.
+
+### Frontend conventions (FT-04)
+
+New pages extend `base.html` and use an `h1.h3` page title.
+Use `{% include "includes/form_field.html" with field=form.email autocomplete="email" only %}`
+for fields; optional arguments are `autocomplete`, `autofocus`, `inputmode`,
+`placeholder`, and `prefix` (such as `$`). Error/help IDs match Django's ARIA references.
+Use `{% include "includes/form_errors.html" with form=form %}` for non-field alerts.
+Password help HTML renders directly; do not add `safe` or escape it again.
+Load `{% load ui %}` for `field_widget`, `money`, and `nav_active`.
+`{% field_widget field autofocus=False aria_label="Email" %}` preserves Django's
+widget attributes; `aria_` and `data_` keyword underscores become hyphens.
+`{{ transaction.signed_amount|money:"signed" }}` gives `+$1,234.50` or `−$20.00`;
+plain `money` omits a positive sign and uses ROUND_HALF_UP to two decimal places.
+`{% nav_active request "transactions:list" as active %}` gives `active` for that route;
+set `aria-current="page"` only when active.
+Brand tokens live in `static/css/fintrack.css`: primary/hover, income/expense,
+background/surface, border, and muted text. Bootstrap variables apply the brand.
+Bootstrap 5.3.8 CSS, JS, maps, and MIT license are in `static/vendor/bootstrap-5.3.8/`.
+Load assets using `{% static %}`; runtime CDN access and a build step are unnecessary.
+`extra_head` and `extra_js` are extension blocks for later sprints.
+The frontend-only `ui` app owns tags and tests and has no models.
 
 ## Setup (FT-02)
 
@@ -110,9 +131,8 @@ SQLite; set it to a PostgreSQL connection URL when deployed. Cookies require HTT
 when debug is off. All dates use America/Toronto, with timezone-aware timestamps.
 Never deploy using the example secret.
 
-Phase 1 supplies login/register page placeholders and protected transaction route
-placeholders. Authentication and transaction forms arrive through separate Phase 2
-and Phase 3 PRs. No functional registration or transaction entry exists yet.
+Sprint 1 supports registration, email login, POST logout, transaction entry,
+and private transaction history. Bootstrap is local, so the interface works offline.
 
 ## Tests and coverage (FT-02, FT-03)
 

@@ -1,0 +1,69 @@
+/* FT-04: Brand tokens and Bootstrap variable overrides. */
+:root {
+  color-scheme: light;
+  --ft-primary: #1d4ed8;
+  --ft-primary-hover: #1e40af;
+  --ft-income: #15803d;
+  --ft-expense: #b91c1c;
+  --ft-bg: #f5f7fa;
+  --ft-surface: #ffffff;
+  --ft-border: #e3e8ef;
+  --ft-muted: #5b6472;
+  --bs-primary: var(--ft-primary);
+  --bs-primary-rgb: 29, 78, 216;
+  --bs-link-color: var(--ft-primary);
+  --bs-link-color-rgb: 29, 78, 216;
+  --bs-link-hover-color: var(--ft-primary-hover);
+  --bs-link-hover-color-rgb: 30, 64, 175;
+  --bs-secondary-color: var(--ft-muted);
+  --bs-body-bg: var(--ft-bg);
+  --bs-focus-ring-color: rgba(29, 78, 216, 0.3);
+}
+.btn-primary {
+  --bs-btn-bg: var(--ft-primary);
+  --bs-btn-border-color: var(--ft-primary);
+  --bs-btn-hover-bg: var(--ft-primary-hover);
+  --bs-btn-hover-border-color: var(--ft-primary-hover);
+  --bs-btn-active-bg: var(--ft-primary-hover);
+  --bs-btn-active-border-color: var(--ft-primary-hover);
+  --bs-btn-disabled-bg: var(--ft-primary);
+  --bs-btn-disabled-border-color: var(--ft-primary);
+  --bs-btn-focus-shadow-rgb: 29, 78, 216;
+}
+
+/* FT-04: Shared surfaces, navigation, and keyboard focus. */
+body { min-height: 100vh; display: flex; flex-direction: column; }
+main { flex: 1; }
+.card, .navbar {
+  --bs-card-bg: var(--ft-surface);
+  --bs-card-border-color: var(--ft-border);
+  background-color: var(--ft-surface);
+}
+.navbar { border-bottom: 1px solid var(--ft-border); }
+.navbar-brand { color: var(--ft-primary); font-weight: 700; }
+.navbar-nav { --bs-navbar-active-color: var(--ft-primary); }
+.nav-link.active { font-weight: 600; }
+.navbar .text-body-secondary { max-width: 18rem; overflow-wrap: anywhere; }
+:focus-visible, .btn:focus-visible, .btn-close:focus-visible { outline: 3px solid var(--ft-primary); outline-offset: 3px; }
+.form-control:focus, .form-select:focus, .form-check-input:focus {
+  border-color: var(--ft-primary);
+  box-shadow: 0 0 0 0.25rem var(--bs-focus-ring-color);
+}
+.ft-skip-link { position: absolute; top: 0.5rem; left: 0.5rem; z-index: 1100; }
+.ft-skip-link:focus { background: var(--ft-surface); padding: 0.5rem 1rem; }
+
+/* FT-05, FT-10, FT-16: Responsive form cards and password guidance. */
+.ft-auth-card { max-width: 28rem; }
+.ft-transaction-card { max-width: 36rem; }
+.form-text ul { padding-left: 1.25rem; margin-bottom: 0; }
+
+/* FT-20, FT-22: Readable figures, wrapping descriptions, and empty state. */
+.ft-date, .ft-money { font-variant-numeric: tabular-nums; }
+.ft-description { min-width: 10rem; overflow-wrap: anywhere; }
+.ft-income { color: var(--ft-income); }
+.ft-expense { color: var(--ft-expense); }
+.ft-badge-income { color: var(--ft-income); background-color: #eaf6ee; }
+.ft-badge-expense { color: var(--ft-expense); background-color: #fceeee; }
+.table { --bs-table-bg: var(--ft-surface); --bs-table-border-color: var(--ft-border); }
+.table > :not(caption) > * > * { padding: 1rem; }
+.ft-empty-mark { width: 3rem; height: 3rem; color: var(--ft-primary); }

@@ -1,24 +1,60 @@
+{# FT-04: Shared layout, navigation and messages. #}
+{% load static ui %}
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><title>{% block title %}FinTrack{% endblock %}</title></head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}FinTrack{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.3.8/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/fintrack.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
 <body>
-<!-- FT-04 (Saad): Unstyled placeholder; replace with the shared layout. -->
-<nav>
-{% if user.is_authenticated %}
-  {% url 'transactions:list' as list_url %}
-  {% if list_url %}<a href="{{ list_url }}">Transactions</a>{% else %}Transactions{% endif %}
-  {% url 'transactions:add' as add_url %}
-  {% if add_url %}<a href="{{ add_url }}">Add transaction</a>{% else %}Add transaction{% endif %}
-  {% url 'accounts:logout' as logout_url %}
-  {% if logout_url %}<form method="post" action="{{ logout_url }}">{% csrf_token %}<button type="submit">Log out</button></form>{% else %}Log out{% endif %}
-{% else %}
-  {% url 'accounts:login' as login_url %}
-  {% if login_url %}<a href="{{ login_url }}">Log in</a>{% else %}Log in{% endif %}
-  {% url 'accounts:register' as register_url %}
-  {% if register_url %}<a href="{{ register_url }}">Register</a>{% else %}Register{% endif %}
-{% endif %}
-</nav>
-{% for message in messages %}<p>{{ message }}</p>{% endfor %}
-{% block content %}{% endblock %}
+  <a class="visually-hidden-focusable ft-skip-link" href="#main">Skip to main content</a>
+  <header>
+    <nav class="navbar navbar-expand-md" aria-label="Main navigation">
+      <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">FinTrack</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav" aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="main-nav">
+          {% if user.is_authenticated %}
+            <ul class="navbar-nav me-auto">
+              {% nav_active request 'transactions:list' as list_active %}
+              <li class="nav-item"><a class="nav-link {{ list_active }}" href="{% url 'transactions:list' %}"{% if list_active %} aria-current="page"{% endif %}>Transactions</a></li>
+              {% nav_active request 'transactions:add' as add_active %}
+              <li class="nav-item"><a class="nav-link {{ add_active }}" href="{% url 'transactions:add' %}"{% if add_active %} aria-current="page"{% endif %}>Add transaction</a></li>
+            </ul>
+            <div class="d-flex flex-wrap align-items-center gap-3 py-2 py-md-0">
+              <span class="text-body-secondary small d-none d-md-inline">Signed in as {{ user.name|default:user.email }}</span>
+              <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Log out</button>
+              </form>
+            </div>
+          {% else %}
+            <div class="d-flex gap-2 ms-auto py-2 py-md-0">
+              <a class="btn btn-outline-secondary" href="{% url 'accounts:login' %}">Log in</a>
+              <a class="btn btn-primary" href="{% url 'accounts:register' %}">Register</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+  </header>
+  <main id="main" class="container py-4" tabindex="-1">
+    {% for message in messages %}
+      <div class="alert alert-{% if message.level_tag == 'error' %}danger{% elif message.level_tag == 'debug' %}secondary{% else %}{{ message.level_tag }}{% endif %} alert-dismissible fade show" role="{% if message.level_tag == 'error' or message.level_tag == 'warning' %}alert{% else %}status{% endif %}">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="container py-3 text-body-secondary small">FinTrack</footer>
+  <script src="{% static 'vendor/bootstrap-5.3.8/js/bootstrap.bundle.min.js' %}" defer></script>
+  {% block extra_js %}{% endblock %}
 </body>
 </html>
