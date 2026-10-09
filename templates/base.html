@@ -26,6 +26,9 @@
               <li class="nav-item"><a class="nav-link {{ list_active }}" href="{% url 'transactions:list' %}"{% if list_active %} aria-current="page"{% endif %}>Transactions</a></li>
               {% nav_active request 'transactions:add' as add_active %}
               <li class="nav-item"><a class="nav-link {{ add_active }}" href="{% url 'transactions:add' %}"{% if add_active %} aria-current="page"{% endif %}>Add transaction</a></li>
+              {# FT-75: All recurring pages share one active navigation item. #}
+              {% nav_active_prefix request 'transactions:recurring_' as recurring_active %}
+              <li class="nav-item"><a class="nav-link {{ recurring_active }}" href="{% url 'transactions:recurring_list' %}"{% if recurring_active %} aria-current="page"{% endif %}>Recurring</a></li>
             </ul>
             <div class="d-flex flex-wrap align-items-center gap-3 py-2 py-md-0">
               <span class="text-body-secondary small d-none d-md-inline">Signed in as {{ user.name|default:user.email }}</span>

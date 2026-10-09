@@ -102,6 +102,41 @@ columns, ISO dates, signed plain decimals, and `Cache-Control: no-store`.
 Formula-leading descriptions are prefixed with an apostrophe for spreadsheet safety.
 Only the signed-in user's rows are queried for display or export.
 
+### Recurring transactions (FT-75, FT-76)
+
+| URL name | Path | Template / context |
+| --- | --- | --- |
+| `transactions:recurring_list` | `/transactions/recurring/` | `transactions/recurring_list.html`, `rules`: user's schedules |
+| `transactions:recurring_add` | `/transactions/recurring/add/` | `transactions/recurring_form.html`, `form`: type, amount, description, frequency, start/end dates |
+| `transactions:recurring_toggle` | `/transactions/recurring/<pk>/toggle/` | POST-only pause/resume, then redirect |
+| `transactions:recurring_delete` | `/transactions/recurring/<pk>/delete/` | GET `transactions/recurring_confirm_delete.html`, `object`; POST deletes rule |
+
+Rules are user-owned; every object lookup includes the user and returns 404 for
+another user's rule. Description is required. Start dates can be at most 366 days
+in the past. End dates are inclusive. Weekly, every-two-weeks and monthly rules
+are supported. Monthly dates anchor to the original start day: Jan 31 → Feb 28
+(or 29) → Mar 31, without drift. The frequency field explains this behaviour.
+Due entries are generated when visiting history or recurring rules and immediately
+after creating a rule. There is no background worker: without a visit or scheduled
+command, entries catch up on the next visit. Each run processes at most 400
+occurrences per rule; later runs continue the catch-up. Database uniqueness on
+rule/date and atomic row locking prevent duplicate occurrences.
+Resume advances to the first scheduled date on or after Toronto-local today,
+without paused-period backfill. Expired rules stay ended if Resume is pressed.
+Deleting a rule retains generated history, clears its source, and removes its
+Recurring badge. `nav_active_prefix` marks all recurring pages active.
+
+For a future deployment scheduler, run daily in the deployed environment:
+
+```bash
+python manage.py generate_recurring_transactions
+```
+
+The command processes all users and reports the number created. PostgreSQL provides
+row locks; SQLite enforces occurrence uniqueness but serializes concurrent writers.
+Migration `0002_recurring_transactions` adds the rules, nullable source FK, indexes,
+and positive-amount/end-date/occurrence constraints. Existing history is preserved.
+
 ## Setup (FT-02)
 
 Install Python **3.12** and Git first. On Debian/Ubuntu Linux, also install the

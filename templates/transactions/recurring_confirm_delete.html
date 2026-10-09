@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{# FT-75: Confirm deletion through a CSRF-protected POST; history is retained. #}
+{% block title %}Delete recurring transaction — FinTrack{% endblock %}
+{% block content %}
+<div class="card ft-transaction-card mx-auto"><div class="card-body p-4">
+  <h1 class="h3">Delete recurring transaction?</h1>
+  <p>Delete the recurring rule <strong>{{ object.description }}</strong>?</p>
+  <p class="text-body-secondary">Already-created entries stay in your history.</p>
+  <form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit">Delete</button>
+    <a class="btn btn-link" href="{% url 'transactions:recurring_list' %}">Cancel</a>
+  </form>
+</div></div>
+{% endblock %}

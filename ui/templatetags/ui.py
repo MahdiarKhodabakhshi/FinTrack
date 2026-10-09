@@ -43,3 +43,10 @@ def nav_active(request, view_name):
     """FT-04: Return the active class only for the current named route."""
     match = getattr(request, "resolver_match", None)
     return "active" if match and match.view_name == view_name else ""
+
+
+@register.simple_tag
+def nav_active_prefix(request, prefix):
+    """FT-75: Mark the recurring section active on each recurring named view."""
+    match = getattr(request, "resolver_match", None)
+    return "active" if match and match.view_name.startswith(prefix) else ""
