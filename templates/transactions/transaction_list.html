@@ -6,15 +6,41 @@
 <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
   <div>
     <h1 class="h3 mb-0">Transactions</h1>
-    <p class="text-body-secondary mb-0 mt-1">Newest first</p>
+    <p class="text-body-secondary mb-0 mt-1">{{ sort_label }}</p>
   </div>
-  <a class="btn btn-primary align-self-start" href="{% url 'transactions:add' %}">Add transaction</a>
+  <div class="d-flex flex-wrap gap-2 align-self-start">
+    {# FT-72: Carry nonempty GET parameters into the private export. #}
+    {% if has_any_transactions %}<a class="btn btn-outline-secondary" href="{% url 'transactions:export' %}{% if export_query %}?{{ export_query }}{% endif %}">Export CSV</a>{% endif %}
+    <a class="btn btn-primary" href="{% url 'transactions:add' %}">Add transaction</a>
+  </div>
 </div>
+{# FT-48 to FT-51: Accessible GET filters preserve values and successful fields. #}
+{% if has_any_transactions %}
+<div class="card mb-3 ft-filter-bar">
+  <div class="card-body">
+    {% include "includes/form_errors.html" with form=filter_form %}
+    <form method="get" role="search" aria-label="Filter transactions">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-3">{% include "includes/form_field.html" with field=filter_form.q only %}</div>
+        <div class="col-6 col-lg-2">{% include "includes/form_field.html" with field=filter_form.type only %}</div>
+        <div class="col-6 col-lg-2">{% include "includes/form_field.html" with field=filter_form.date_from only %}</div>
+        <div class="col-6 col-lg-2">{% include "includes/form_field.html" with field=filter_form.date_to only %}</div>
+        <div class="col-6 col-lg-2">{% include "includes/form_field.html" with field=filter_form.sort only %}</div>
+        <div class="col-12 col-lg-1 d-flex flex-wrap gap-2">
+          <button class="btn btn-primary" type="submit">Apply</button>
+          {% if filters_active %}<a class="btn btn-link px-0" href="{% url 'transactions:list' %}">Clear</a>{% endif %}
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<p class="text-body-secondary" role="status">Showing {{ result_count }} transaction{{ result_count|pluralize }}{% if filters_active %} matching your filters{% endif %}</p>
+{% endif %}
 {% if transactions %}
 <div class="card">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
-      <caption class="visually-hidden">Your transactions, newest first</caption>
+      <caption class="visually-hidden">Your transactions, {{ sort_label|lower }}</caption>
       <thead><tr><th scope="col">Date</th><th scope="col">Type</th><th scope="col">Description</th><th scope="col" class="text-end">Amount</th></tr></thead>
       <tbody>
       {% for t in transactions %}
@@ -27,6 +53,14 @@
       {% endfor %}
       </tbody>
     </table>
+  </div>
+</div>
+{% elif has_any_transactions %}
+<div class="card text-center">
+  <div class="card-body p-4">
+    <h2 class="h4">No transactions match your filters</h2>
+    <p class="text-body-secondary">Try a different keyword, type, or date range.</p>
+    <a class="btn btn-link" href="{% url 'transactions:list' %}">Clear filters</a>
   </div>
 </div>
 {% else %}
