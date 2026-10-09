@@ -39,9 +39,10 @@ Registration (FT-05) and login (FT-10) share accessible field rendering and
 non-field error alerts (FT-12). The login POST field name stays
 `username` even though its label and widget are Email. Render field errors and
 `form.non_field_errors`, and retain login's hidden `next` field.
-Tom adds FT-06 and FT-08 rules at the markers in `accounts/forms.py`, and owns
+Registration validation (FT-06) and friendly case-insensitive duplicate-email
+errors (FT-08) live in `accounts/forms.py`. Feature tests are in
 `accounts/tests/test_registration.py` (FT-09) and `accounts/tests/test_login.py`
-(FT-15). Mahdiar's security checks are in `accounts/tests/test_security.py`.
+(FT-15). Security checks remain in `accounts/tests/test_security.py`.
 
 ### Transactions (FT-18, FT-21)
 
@@ -57,9 +58,10 @@ Amounts are Decimal values; type is `income` or `expense`. The date widget uses
 `type="date"`. Templates share `user`, `request`, and `messages` context.
 
 The form (FT-16), history table (FT-20), and empty-state card (FT-22) share
-the frontend conventions below. Tom adds FT-17 validation in `transactions/forms.py`
-and owns `transactions/tests/test_add_transaction.py` (FT-19) and
-`transactions/tests/test_history.py` (FT-23). Model validation remains the baseline.
+the frontend conventions below. Input validation (FT-17) is in `transactions/forms.py`.
+Feature tests are in `transactions/tests/test_add_transaction.py` (FT-19) and
+`transactions/tests/test_history.py` (FT-23); model validators and DB constraints
+remain in force.
 Mahdiar's ownership tests are in `transactions/tests/test_ownership.py`.
 Sprint 2 edit/delete views (FT-24 to FT-27) must use
 `get_user_transaction_or_404(user, pk)`; another user's record returns 404.
@@ -201,8 +203,31 @@ Optional: `coverage html` creates the ignored `htmlcov/` report.
 CI runs these checks on Python 3.12 with non-debug settings. The required GitHub
 check is the `test` job in the `CI` workflow.
 
-Mahdiar owns `accounts/tests/test_models.py` and
-`transactions/tests/test_models.py`; Tom will add the registration, login,
-add-transaction and history feature test files. Model tests cover lowercase email
+Model tests are in `accounts/tests/test_models.py` and
+`transactions/tests/test_models.py`; registration, login/logout, transaction entry
+and history now also have dedicated feature tests. Model tests cover lowercase email
 identity, superuser flags, transaction ordering, positive amounts, signed amounts,
 and cascading deletion (FT-03).
+
+
+### Sprint 1 validation and acceptance tests (FT-06, FT-08, FT-09, FT-15, FT-17, FT-19, FT-23)
+
+Registration normalizes emails to lowercase and checks format using Django's
+EmailField. Django's configured password validators check length, common passwords,
+numeric-only passwords and similarity to user data; BaseUserCreationForm checks
+matching passwords. Required names remain limited to 150 characters.
+Existing email case variants show "An account with this email already exists."
+on the email field. A database uniqueness collision after validation shows the same
+message; unrelated database failures are not hidden. Password hashing and login
+session handling continue through Django's built-in APIs.
+Transaction type, amount and date are required. Amounts must be positive, fit the
+12-digit/two-decimal model field, and pass its validators. DateField validates calendar
+dates, including leap years. Description is optional and limited to 255 characters.
+Future transaction dates are allowed; Sprint 1 has no rule banning them.
+All validation errors use the existing accessible template partials automatically.
+The four feature suites cover successful saves, invalid input, duplicate/racing
+registrations, safe redirects, CSRF, logout, user isolation, ordering and HTML escaping.
+
+Original Sprint 1 delivery is tracked by FT-01 to FT-23. Search/export and recurring
+transactions pulled forward later are separate PRs #35 and #36 (merge #35 first).
+Every PR still needs another team member's approval; do not auto-merge them.
