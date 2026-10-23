@@ -1,6 +1,6 @@
 # FinTrack
 
-FinTrack is a personal finance web app for a three-person university Scrum project. Sprint 1 lets users register, sign in, record income and expenses, and view their own transaction history. Later sprints add categories, budgets, a dashboard and charts.
+FinTrack is a personal finance web app for a three-person university Scrum project. Users can register, sign in, record income and expenses, manage expense categories, set monthly budgets and review their own financial dashboard and transaction history. Later sprints add charts and budget warnings.
 
 | Team member | Scrum role |
 | --- | --- |
@@ -48,10 +48,11 @@ errors (FT-08) live in `accounts/forms.py`. Feature tests are in
 
 | URL name | Path | Template | Context |
 | --- | --- | --- | --- |
+| `home` | `/` | Redirect | Signed-in users go to the dashboard; signed-out users go to login |
 | `transactions:list` | `/transactions/` | `transactions/transaction_list.html` | `transactions` and `object_list`: signed-in user's records, ordered by descending date then creation time; `view`, `is_paginated=False`, `paginator=None`, `page_obj=None` |
-| `transactions:add` | `/transactions/add/` | `transactions/transaction_form.html` | `form`: TransactionForm with transaction_type, amount, date, description; `view`, `object=None` |
+| `transactions:add` | `/transactions/add/` | `transactions/transaction_form.html` | `form`: TransactionForm with transaction_type, amount, date, description and the current user's categories; `view`, `object=None` |
 
-Both pages require login, even before the authentication PR is merged. A valid
+Both pages require login. A valid
 add POST assigns the session user, adds a success message, and redirects to
 `transactions:list`. The form never includes `user`; forged ownership is ignored.
 Amounts are Decimal values; type is `income` or `expense`. The date widget uses
@@ -63,8 +64,9 @@ Feature tests are in `transactions/tests/test_add_transaction.py` (FT-19) and
 `transactions/tests/test_history.py` (FT-23); model validators and DB constraints
 remain in force.
 Mahdiar's ownership tests are in `transactions/tests/test_ownership.py`.
-Sprint 2 edit/delete views (FT-24 to FT-27) must use
-`get_user_transaction_or_404(user, pk)`; another user's record returns 404.
+Sprint 2 edit/delete views use `get_user_transaction_or_404(user, pk)`; another
+user's record returns 404. Expense forms require one of the signed-in user's
+categories. Income transactions do not have a spending category.
 
 ### Frontend conventions (FT-04)
 
@@ -94,7 +96,7 @@ The frontend-only `ui` app owns tags and tests and has no models.
 `date_to`, and `sort`. Search is stripped and case-insensitive. Dates are inclusive;
 reversed ranges show an error and ignore both dates while retaining valid filters.
 Sort values are whitelisted: `newest`, `oldest`, `amount_high`, `amount_low`.
-Unknown sorts fall back to newest. FT-50 category filtering waits for FT-29 to FT-34.
+Unknown sorts fall back to newest. Category filtering remains planned for Sprint 3 (FT-50).
 Additional list context: `filter_form`, `filters_active`, `result_count`,
 `has_any_transactions`, `export_query`, and `sort_label`. The empty-history card
 is retained; zero filtered results have a separate no-match card.
@@ -138,6 +140,42 @@ The command processes all users and reports the number created. PostgreSQL provi
 row locks; SQLite enforces occurrence uniqueness but serializes concurrent writers.
 Migration `0002_recurring_transactions` adds the rules, nullable source FK, indexes,
 and positive-amount/end-date/occurrence constraints. Existing history is preserved.
+
+### Categories, budgets and dashboard (Sprint 2, FT-24 to FT-43)
+
+| URL name | Path | Page and purpose |
+| --- | --- | --- |
+| `transactions:dashboard` | `/transactions/dashboard/` | `transactions/dashboard.html`: month selector, income, expenses, net cash flow and category budget rows |
+| `transactions:categories` | `/transactions/categories/` | `transactions/category_list.html`: starter and custom categories |
+| `transactions:category_add` | `/transactions/categories/add/` | POST adds a custom category; errors render on the category page |
+| `transactions:category_edit` | `/transactions/categories/<pk>/edit/` | `transactions/category_form.html`: rename a custom category |
+| `transactions:category_delete` | `/transactions/categories/<pk>/delete/` | `transactions/category_confirm_delete.html`: GET confirmation, POST removal |
+| `transactions:budgets` | `/transactions/budgets/` | `transactions/budget_list.html`: set/update a category limit and view spent/remaining amounts |
+| `transactions:edit` | `/transactions/<pk>/edit/` | `transactions/transaction_form.html`: prefilled, owner-only transaction edit |
+| `transactions:delete` | `/transactions/<pk>/delete/` | `transactions/transaction_confirm_delete.html`: GET confirmation, POST deletion |
+
+Each account receives Food, Housing, Transport, Utilities, Health, Personal,
+Entertainment, and a protected Uncategorized category. Migration `0003` creates
+these for existing accounts and assigns their uncategorized expenses. Category and
+budget forms only accept records owned by the signed-in user. Deleting a custom
+category moves its transactions and recurring rules to that user's Uncategorized
+category; its monthly budgets are removed and the confirmation page says so.
+System categories cannot be renamed or deleted.
+
+`Transaction.category` is nullable because income has no category; expense forms
+require a category. Recurring expense forms can choose a category, and generated
+transactions inherit it. Older rules without one use Uncategorized. Category names
+are unique per user without regard to case. Budgets store the first day of the month
+as `month_start`, with one positive amount per user/category/month. Spending counts
+only that user's expenses dated from the month's first day up to (but not including)
+the next month. Remaining is budget minus spending and can be negative.
+
+The dashboard defaults to the Toronto-local current month. Its GET `month` value is
+`YYYY-MM`; malformed values show a field error while safely displaying the current
+month. Summary calculations use Decimal aggregation and never mix accounts. The
+signed-in home route redirects to the dashboard; login and registration continue
+to send users to transaction history. Category, budget, dashboard and transaction
+management tests live in `transactions/tests/test_sprint2_*.py`.
 
 ## Setup (FT-02)
 
@@ -184,8 +222,9 @@ SQLite; set it to a PostgreSQL connection URL when deployed. Cookies require HTT
 when debug is off. All dates use America/Toronto, with timezone-aware timestamps.
 Never deploy using the example secret.
 
-Sprint 1 supports registration, email login, POST logout, transaction entry,
-and private transaction history. Bootstrap is local, so the interface works offline.
+Sprint 1 and 2 support registration, email login, private transaction history,
+transaction management, expense categories, monthly budgets and a dashboard.
+Bootstrap is local, so the interface works offline.
 
 ## Tests and coverage (FT-02, FT-03)
 
@@ -204,8 +243,9 @@ CI runs these checks on Python 3.12 with non-debug settings. The required GitHub
 check is the `test` job in the `CI` workflow.
 
 Model tests are in `accounts/tests/test_models.py` and
-`transactions/tests/test_models.py`; registration, login/logout, transaction entry
-and history now also have dedicated feature tests. Model tests cover lowercase email
+`transactions/tests/test_models.py`; registration, login/logout, transaction entry,
+history, search/export, recurring transactions and Sprint 2 workflows have dedicated
+feature tests. Model tests cover lowercase email
 identity, superuser flags, transaction ordering, positive amounts, signed amounts,
 and cascading deletion (FT-03).
 
@@ -228,6 +268,5 @@ All validation errors use the existing accessible template partials automaticall
 The four feature suites cover successful saves, invalid input, duplicate/racing
 registrations, safe redirects, CSRF, logout, user isolation, ordering and HTML escaping.
 
-Original Sprint 1 delivery is tracked by FT-01 to FT-23. Search/export and recurring
-transactions pulled forward later are separate PRs #35 and #36 (merge #35 first).
-Every PR still needs another team member's approval; do not auto-merge them.
+Sprint 1 (FT-01 to FT-23), pulled-forward search/export (FT-48 to FT-52 and FT-72),
+and recurring transactions (FT-75 to FT-76) are merged into `main`.
