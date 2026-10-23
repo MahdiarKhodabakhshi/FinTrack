@@ -1,24 +1,26 @@
 {% extends "base.html" %}
 {# FT-16: Responsive transaction entry without changing backend fields. #}
-{% block title %}Add transaction — FinTrack{% endblock %}
+{% block title %}{{ page_title }} — FinTrack{% endblock %}
 {% block content %}
 <div class="ft-transaction-card mx-auto">
-  <a class="d-inline-block mb-3" href="{% url 'transactions:list' %}">← Back to transactions</a>
+  <a class="d-inline-block mb-3" href="{{ cancel_url }}">← Back to transactions</a>
   <div class="card">
     <div class="card-body p-4">
-      <h1 class="h3 mb-3">Add a transaction</h1>
+      <h1 class="h3 mb-3">{{ page_title }}</h1>
       {% include "includes/form_errors.html" with form=form %}
       <form method="post" novalidate>
         {% csrf_token %}
+        {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
         <div class="row g-3">
           <div class="col-md-6">{% include "includes/form_field.html" with field=form.transaction_type only %}</div>
           <div class="col-md-6">{% include "includes/form_field.html" with field=form.amount prefix="$" inputmode="decimal" placeholder="0.00" only %}</div>
         </div>
+        {% include "includes/form_field.html" with field=form.category only %}
         {% include "includes/form_field.html" with field=form.date only %}
         {% include "includes/form_field.html" with field=form.description placeholder="e.g. Groceries, Paycheque" only %}
         <div class="d-flex flex-wrap align-items-center gap-2">
-          <button type="submit" class="btn btn-primary">Save transaction</button>
-          <a class="btn btn-link" href="{% url 'transactions:list' %}">Cancel</a>
+          <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
+          <a class="btn btn-link" href="{{ cancel_url }}">Cancel</a>
         </div>
       </form>
     </div>

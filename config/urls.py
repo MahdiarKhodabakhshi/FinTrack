@@ -5,7 +5,7 @@ from django.urls import include, path
 
 
 def home(request):
-    return redirect("transactions:list" if request.user.is_authenticated else "accounts:login")
+    return redirect("transactions:dashboard" if request.user.is_authenticated else "accounts:login")
 
 
 urlpatterns = [

@@ -139,7 +139,7 @@ class PageTests(TestCase):
         for text in ("+$1,234.50", "−$20.00", "Income", "Expense"):
             self.assertContains(response, text)
         self.assertTrue(doc.matching("time", datetime="2026-10-07"))
-        self.assertContains(response, 'scope="col"', count=4)
+        self.assertContains(response, 'scope="col"', count=5)
         html = response.content.decode()
         self.assertLess(html.index("Newer groceries"), html.index("Older paycheque"))
 

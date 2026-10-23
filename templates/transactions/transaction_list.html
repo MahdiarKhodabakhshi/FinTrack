@@ -41,17 +41,22 @@
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
       <caption class="visually-hidden">Your transactions, {{ sort_label|lower }}</caption>
-      <thead><tr><th scope="col">Date</th><th scope="col">Type</th><th scope="col">Description</th><th scope="col" class="text-end">Amount</th></tr></thead>
+      <thead><tr><th scope="col">Date</th><th scope="col">Type</th><th scope="col">Description</th><th scope="col" class="text-end">Amount</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
       <tbody>
       {% for t in transactions %}
         <tr>
           <td class="ft-date text-nowrap"><time datetime="{{ t.date|date:'Y-m-d' }}">{{ t.date|date:"M j, Y" }}</time></td>
           <td><span class="badge rounded-pill {% if t.transaction_type == 'income' %}ft-badge-income{% else %}ft-badge-expense{% endif %}">{{ t.get_transaction_type_display }}</span></td>
           <td class="ft-description">{% if t.description %}{{ t.description }}{% else %}<span class="text-body-secondary">—</span>{% endif %}
+            {% if t.category %}<span class="badge text-bg-light border ms-1">{{ t.category.name }}</span>{% endif %}
             {# FT-75: Only the FK ID is needed to identify generated entries. #}
             {% if t.recurring_source_id %}<span class="badge text-bg-light border" title="Created by a recurring transaction" aria-label="Created by a recurring transaction">Recurring</span>{% endif %}
           </td>
           <td class="ft-money text-end text-nowrap {% if t.transaction_type == 'income' %}ft-income{% else %}ft-expense{% endif %}">{{ t.signed_amount|money:"signed" }}</td>
+          <td class="text-nowrap">
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'transactions:edit' t.pk %}?next={{ request.get_full_path|urlencode }}">Edit</a>
+            <a class="btn btn-sm btn-outline-danger" href="{% url 'transactions:delete' t.pk %}?next={{ request.get_full_path|urlencode }}">Delete</a>
+          </td>
         </tr>
       {% endfor %}
       </tbody>

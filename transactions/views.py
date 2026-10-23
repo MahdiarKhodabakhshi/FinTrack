@@ -24,6 +24,16 @@ class TransactionCreateView(LoginRequiredMixin, CreateView):
     template_name = "transactions/transaction_form.html"
     success_url = reverse_lazy("transactions:list")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(page_title="Add a transaction", submit_label="Save transaction", cancel_url=reverse_lazy("transactions:list"))
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
         form.instance.user = self.request.user
         response = super().form_valid(form)
@@ -46,7 +56,7 @@ class TransactionListView(LoginRequiredMixin, ListView):
     # FT-48 to FT-51: Start with ownership, then reuse the shared filter pipeline.
     def get_queryset(self):
         self.filter_form = TransactionFilterForm(self.request.GET or None)
-        return apply_transaction_filters(Transaction.objects.filter(user=self.request.user), self.filter_form)
+        return apply_transaction_filters(Transaction.objects.filter(user=self.request.user).select_related("category"), self.filter_form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

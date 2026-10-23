@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import User
-from transactions.models import Transaction
+from transactions.models import Category, Transaction
 from transactions.views import get_user_transaction_or_404
 
 
@@ -15,6 +15,7 @@ class TransactionOwnershipTests(TestCase):
     def setUp(self):
         self.user_a = User.objects.create_user("a@example.com", name="A")
         self.user_b = User.objects.create_user("b@example.com", name="B")
+        self.food = Category.objects.get(user=self.user_a, name="Food")
         self.record_a = Transaction.objects.create(user=self.user_a, transaction_type="income", amount=Decimal("10.00"), date=date(2026, 10, 1), description="A-private-record")
         self.record_b = Transaction.objects.create(user=self.user_b, transaction_type="expense", amount=Decimal("20.00"), date=date(2026, 10, 2), description="B-private-record")
 
@@ -29,7 +30,7 @@ class TransactionOwnershipTests(TestCase):
         self.client.force_login(self.user_a)
         response = self.client.post(reverse("transactions:add"), {
             "user": self.user_b.pk, "transaction_type": "expense", "amount": "5.25",
-            "date": "2026-10-03", "description": "Forged-owner-record",
+            "date": "2026-10-03", "description": "Forged-owner-record", "category": self.food.pk,
         })
         self.assertRedirects(response, reverse("transactions:list"))
         saved = Transaction.objects.get(description="Forged-owner-record")

@@ -41,7 +41,7 @@ def generate_due_transactions(*, user=None, today=None):
                 _, created = Transaction.objects.get_or_create(
                     recurring_source=rule, date=rule.next_due_date,
                     defaults={"user": rule.user, "transaction_type": rule.transaction_type,
-                              "amount": rule.amount, "description": rule.description},
+                              "amount": rule.amount, "description": rule.description, "category": rule.category},
                 )
                 created_count += int(created)
                 processed += 1

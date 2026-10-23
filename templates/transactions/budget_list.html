@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load ui %}
+{# FT-35 to FT-38: Set a monthly limit and review spent and remaining amounts. #}
+{% block title %}Budgets — FinTrack{% endblock %}
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4"><div><h1 class="h3 mb-1">Monthly budgets</h1><p class="text-body-secondary mb-0">Give each spending category a clear monthly limit.</p></div>
+  <form method="get" class="d-flex align-items-end gap-2" aria-label="Choose budget month">{% include "includes/form_field.html" with field=month_form.month only %}<button class="btn btn-outline-primary mb-3" type="submit">View month</button></form>
+</div>
+<div class="row g-4 align-items-start"><div class="col-12 col-lg-5"><section class="card"><div class="card-body p-4"><h2 class="h5">Set a budget for {{ month|date:"F Y" }}</h2>
+  {% include "includes/form_errors.html" with form=form %}
+  <form method="post" novalidate>{% csrf_token %}
+    {% include "includes/form_field.html" with field=form.category only %}
+    {% include "includes/form_field.html" with field=form.month_start only %}
+    {% include "includes/form_field.html" with field=form.amount prefix="$" inputmode="decimal" placeholder="0.00" only %}
+    <button class="btn btn-primary w-100" type="submit">Save monthly budget</button>
+  </form>
+</div></section></div>
+<div class="col-12 col-lg-7"><section class="card"><div class="card-body border-bottom"><h2 class="h5 mb-1">Category plan</h2><p class="text-body-secondary mb-0">Spent and remaining for {{ month|date:"F Y" }}</p></div>
+  {% if budget_rows %}<div class="table-responsive"><table class="table align-middle mb-0"><caption class="visually-hidden">Monthly category budget, spending and remaining amounts</caption><thead><tr><th scope="col">Category</th><th scope="col" class="text-end">Budget</th><th scope="col" class="text-end">Spent</th><th scope="col" class="text-end">Remaining</th><th scope="col"><span class="visually-hidden">Action</span></th></tr></thead><tbody>
+  {% for row in budget_rows %}<tr><th scope="row">{{ row.category.name }}</th><td class="text-end ft-money text-nowrap">{% if row.budget %}{{ row.budget.amount|money }}{% else %}<span class="text-body-secondary">—</span>{% endif %}</td><td class="text-end ft-money text-nowrap">{{ row.spent|money }}</td><td class="text-end ft-money text-nowrap">{% if row.remaining != None %}<span class="{% if row.remaining < 0 %}ft-expense{% else %}ft-income{% endif %}">{{ row.remaining|money:"signed" }}</span>{% else %}<span class="text-body-secondary">—</span>{% endif %}</td><td>{% if row.budget %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'transactions:budgets' %}?month={{ month|date:'Y-m' }}&amp;category={{ row.category.pk }}">Edit</a>{% else %}<a class="btn btn-sm btn-outline-primary" href="{% url 'transactions:budgets' %}?month={{ month|date:'Y-m' }}&amp;category={{ row.category.pk }}">Set</a>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>{% else %}<div class="card-body"><p class="text-body-secondary mb-0">Add an expense category before setting a budget.</p></div>{% endif %}
+</section></div></div>
+{% endblock %}

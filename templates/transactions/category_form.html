@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{# FT-31: Keep category renames simple and reversible. #}
+{% block title %}Rename category — FinTrack{% endblock %}
+{% block content %}
+<div class="ft-transaction-card mx-auto"><a class="d-inline-block mb-3" href="{% url 'transactions:categories' %}">← Back to categories</a>
+  <section class="card"><div class="card-body p-4"><h1 class="h3">Rename category</h1>
+    {% include "includes/form_errors.html" with form=form %}
+    <form method="post" novalidate>{% csrf_token %}
+      {% include "includes/form_field.html" with field=form.name autocomplete="off" only %}
+      <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save name</button><a class="btn btn-outline-secondary" href="{% url 'transactions:categories' %}">Cancel</a></div>
+    </form>
+  </div></section>
+</div>
+{% endblock %}

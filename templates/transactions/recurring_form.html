@@ -13,6 +13,7 @@
         <div class="col-md-6">{% include "includes/form_field.html" with field=form.transaction_type only %}</div>
         <div class="col-md-6">{% include "includes/form_field.html" with field=form.amount prefix="$" inputmode="decimal" placeholder="0.00" only %}</div>
       </div>
+      {% include "includes/form_field.html" with field=form.category only %}
       {% include "includes/form_field.html" with field=form.description placeholder="e.g. Rent, Paycheque" only %}
       {% include "includes/form_field.html" with field=form.frequency only %}
       {% include "includes/form_field.html" with field=form.start_date only %}

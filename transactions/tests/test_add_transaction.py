@@ -6,17 +6,18 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from accounts.models import User
-from transactions.models import Transaction
+from transactions.models import Category, Transaction
 
 
 class AddTransactionTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user('adding@example.com', name='Adding')
         self.other = User.objects.create_user('other@example.com', name='Other')
+        self.category = Category.objects.get(user=self.user, name='Food')
         self.client.force_login(self.user)
 
     def data(self, **overrides):
-        values = {'transaction_type': 'expense', 'amount': '12.34', 'date': '2026-10-08', 'description': 'Groceries'}
+        values = {'transaction_type': 'expense', 'amount': '12.34', 'date': '2026-10-08', 'description': 'Groceries', 'category': str(self.category.pk)}
         values.update(overrides)
         return values
 
@@ -27,7 +28,7 @@ class AddTransactionTests(TestCase):
         response = self.client.get(reverse('transactions:add'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'transactions/transaction_form.html')
-        self.assertEqual(list(response.context['form'].fields), ['transaction_type', 'amount', 'date', 'description'])
+        self.assertEqual(list(response.context['form'].fields), ['transaction_type', 'amount', 'date', 'description', 'category'])
         self.assertNotContains(response, 'name="user"')
 
     def test_income_and_expense_save_all_values_and_success_message(self):
@@ -50,6 +51,14 @@ class AddTransactionTests(TestCase):
                 self.assertIn(field, response.context['form'].errors)
                 self.assertContains(response, f'id="id_{field}_error"')
         self.assertFalse(Transaction.objects.exists())
+
+    def test_expense_requires_a_category_but_income_is_uncategorized(self):
+        response = self.submit(category='')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('category', response.context['form'].errors)
+        self.assertFalse(Transaction.objects.exists())
+        self.assertRedirects(self.submit(transaction_type='income', category=''), reverse('transactions:list'))
+        self.assertIsNone(Transaction.objects.get().category)
 
     def test_amount_validation_rejects_nonpositive_invalid_and_out_of_range(self):
         for amount in ('0', '-0.01', 'invalid', 'NaN', 'Infinity', '0.001', '10000000000.00'):

@@ -13,7 +13,7 @@
 <body>
   <a class="visually-hidden-focusable ft-skip-link" href="#main">Skip to main content</a>
   <header>
-    <nav class="navbar navbar-expand-md" aria-label="Main navigation">
+    <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
       <div class="container">
         <a class="navbar-brand" href="{% url 'home' %}">FinTrack</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav" aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,16 +22,33 @@
         <div class="collapse navbar-collapse" id="main-nav">
           {% if user.is_authenticated %}
             <ul class="navbar-nav me-auto">
+              {% nav_active request 'transactions:dashboard' as dashboard_active %}
+              <li class="nav-item"><a class="nav-link {{ dashboard_active }}" href="{% url 'transactions:dashboard' %}"{% if dashboard_active %} aria-current="page"{% endif %}>Dashboard</a></li>
               {% nav_active request 'transactions:list' as list_active %}
+              {% nav_active request 'transactions:edit' as edit_active %}
+              {% nav_active request 'transactions:delete' as delete_active %}
+              {% if edit_active or delete_active %}{% with list_active='active' %}
+              <li class="nav-item"><a class="nav-link {{ list_active }}" href="{% url 'transactions:list' %}" aria-current="page">Transactions</a></li>
+              {% endwith %}{% else %}
               <li class="nav-item"><a class="nav-link {{ list_active }}" href="{% url 'transactions:list' %}"{% if list_active %} aria-current="page"{% endif %}>Transactions</a></li>
+              {% endif %}
               {% nav_active request 'transactions:add' as add_active %}
               <li class="nav-item"><a class="nav-link {{ add_active }}" href="{% url 'transactions:add' %}"{% if add_active %} aria-current="page"{% endif %}>Add transaction</a></li>
+              {% nav_active request 'transactions:categories' as categories_active %}
+              {% nav_active_prefix request 'transactions:category_' as category_action_active %}
+              {% if category_action_active %}{% with categories_active='active' %}
+              <li class="nav-item"><a class="nav-link {{ categories_active }}" href="{% url 'transactions:categories' %}" aria-current="page">Categories</a></li>
+              {% endwith %}{% else %}
+              <li class="nav-item"><a class="nav-link {{ categories_active }}" href="{% url 'transactions:categories' %}"{% if categories_active %} aria-current="page"{% endif %}>Categories</a></li>
+              {% endif %}
+              {% nav_active request 'transactions:budgets' as budgets_active %}
+              <li class="nav-item"><a class="nav-link {{ budgets_active }}" href="{% url 'transactions:budgets' %}"{% if budgets_active %} aria-current="page"{% endif %}>Budgets</a></li>
               {# FT-75: All recurring pages share one active navigation item. #}
               {% nav_active_prefix request 'transactions:recurring_' as recurring_active %}
               <li class="nav-item"><a class="nav-link {{ recurring_active }}" href="{% url 'transactions:recurring_list' %}"{% if recurring_active %} aria-current="page"{% endif %}>Recurring</a></li>
             </ul>
             <div class="d-flex flex-wrap align-items-center gap-3 py-2 py-md-0">
-              <span class="text-body-secondary small d-none d-md-inline">Signed in as {{ user.name|default:user.email }}</span>
+              <span class="text-body-secondary small d-none d-lg-inline">Signed in as {{ user.name|default:user.email }}</span>
               <form method="post" action="{% url 'accounts:logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-outline-secondary btn-sm">Log out</button>

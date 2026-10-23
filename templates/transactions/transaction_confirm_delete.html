@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load ui %}
+{# FT-26: Confirm destructive history changes before the POST request. #}
+{% block title %}Delete transaction — FinTrack{% endblock %}
+{% block content %}
+<div class="ft-confirm-card mx-auto">
+  <a class="d-inline-block mb-3" href="{{ cancel_url }}">← Back to transactions</a>
+  <section class="card"><div class="card-body p-4">
+    <h1 class="h3">Delete transaction?</h1>
+    <p>Delete <strong>{{ object.get_transaction_type_display|lower }}</strong> for <strong>{{ object.amount|money }}</strong> dated <time datetime="{{ object.date|date:'Y-m-d' }}">{{ object.date|date:"M j, Y" }}</time>?</p>
+    <p class="text-body-secondary">This removes the transaction from your history.</p>
+    <form method="post">
+      {% csrf_token %}
+      {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+      <div class="d-flex flex-wrap gap-2"><button class="btn btn-danger" type="submit">Delete transaction</button><a class="btn btn-outline-secondary" href="{{ cancel_url }}">Cancel</a></div>
+    </form>
+  </div></section>
+</div>
+{% endblock %}

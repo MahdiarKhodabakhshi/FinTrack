@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{# FT-33: Explain where historical expenses go before removing a custom category. #}
+{% block title %}Delete category — FinTrack{% endblock %}
+{% block content %}
+<div class="ft-confirm-card mx-auto"><a class="d-inline-block mb-3" href="{% url 'transactions:categories' %}">← Back to categories</a>
+  <section class="card"><div class="card-body p-4"><h1 class="h3">Delete “{{ category.name }}”?</h1>
+    <p>Existing transactions and recurring rules will move to <strong>Uncategorized</strong>. Monthly budgets for this category will be removed.</p>
+    <form method="post">{% csrf_token %}<div class="d-flex flex-wrap gap-2"><button class="btn btn-danger" type="submit">Delete category</button><a class="btn btn-outline-secondary" href="{% url 'transactions:categories' %}">Keep category</a></div></form>
+  </div></section>
+</div>
+{% endblock %}

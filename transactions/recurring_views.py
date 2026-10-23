@@ -8,7 +8,7 @@ from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, ListView
 
-from .models import RecurringTransaction
+from .models import Category, RecurringTransaction
 from .recurring import generate_due_transactions, resume_rule
 from .recurring_forms import RecurringTransactionForm
 
@@ -33,9 +33,16 @@ class RecurringCreateView(LoginRequiredMixin, CreateView):
     template_name = "transactions/recurring_form.html"
     success_url = reverse_lazy("transactions:recurring_list")
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
         form.instance.user = self.request.user
         form.instance.next_due_date = form.cleaned_data["start_date"]
+        if form.instance.transaction_type == "expense" and form.instance.category_id is None:
+            form.instance.category = Category.objects.get(user=self.request.user, is_uncategorized=True)
         response = super().form_valid(form)
         count = generate_due_transactions(user=self.request.user)
         noun = "entry" if count == 1 else "entries"
