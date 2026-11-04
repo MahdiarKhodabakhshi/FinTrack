@@ -1,6 +1,6 @@
 # FinTrack
 
-FinTrack is a personal finance web app for a three-person university Scrum project. Users can register, sign in, record income and expenses, manage expense categories, set monthly budgets and review their own financial dashboard and transaction history. Later sprints add charts and budget warnings.
+FinTrack is a personal finance web app for a three-person university Scrum project. Users can register, sign in, record income and expenses, manage expense categories and monthly budgets, and review private financial summaries, charts and spending comparisons. Search, filters, recurring entries, CSV export and budget warnings support day-to-day tracking.
 
 | Team member | Scrum role |
 | --- | --- |
@@ -49,6 +49,10 @@ errors (FT-08) live in `accounts/forms.py`. Feature tests are in
 | URL name | Path | Template | Context |
 | --- | --- | --- | --- |
 | `home` | `/` | Redirect | Signed-in users go to the dashboard; signed-out users go to login |
+| `transactions:comparison` | `/transactions/compare/` | `transactions/month_comparison.html` | `form`, `month_a`, `month_b`, `comparison_rows`, `total_a`, `total_b`, `total_change`: current user's expense comparison |
+| `transactions:savings_goals` | `/transactions/savings/` | `transactions/savings_goal_list.html` | `goals`: owner-scoped targets, saved/remaining amounts, progress and contribution history |
+| `transactions:savings_goal_add` | `/transactions/savings/add/` | `transactions/savings_goal_form.html` | `form`: goal name, positive target amount and target date |
+| `transactions:savings_goal_contribute` | `/transactions/savings/<pk>/contribute/` | Redirect to goal list | POST-only dated contribution; owner-scoped goal lookup |
 | `transactions:list` | `/transactions/` | `transactions/transaction_list.html` | `transactions` and `object_list`: signed-in user's records, ordered by descending date then creation time; `view`, `is_paginated=False`, `paginator=None`, `page_obj=None` |
 | `transactions:add` | `/transactions/add/` | `transactions/transaction_form.html` | `form`: TransactionForm with transaction_type, amount, date, description and the current user's categories; `view`, `object=None` |
 
@@ -92,11 +96,11 @@ The frontend-only `ui` app owns tags and tests and has no models.
 
 ### Search, filters and CSV (FT-48 to FT-52, FT-72)
 
-`transactions:list` accepts optional GET fields `q`, `type`, `date_from`,
+`transactions:list` accepts optional GET fields `q`, `type`, `category`, `date_from`,
 `date_to`, and `sort`. Search is stripped and case-insensitive. Dates are inclusive;
 reversed ranges show an error and ignore both dates while retaining valid filters.
 Sort values are whitelisted: `newest`, `oldest`, `amount_high`, `amount_low`.
-Unknown sorts fall back to newest. Category filtering remains planned for Sprint 3 (FT-50).
+Unknown sorts fall back to newest. The category select contains only the signed-in user's categories.
 Additional list context: `filter_form`, `filters_active`, `result_count`,
 `has_any_transactions`, `export_query`, and `sort_label`. The empty-history card
 is retained; zero filtered results have a separate no-match card.
@@ -222,10 +226,6 @@ SQLite; set it to a PostgreSQL connection URL when deployed. Cookies require HTT
 when debug is off. All dates use America/Toronto, with timezone-aware timestamps.
 Never deploy using the example secret.
 
-Sprint 1 and 2 support registration, email login, private transaction history,
-transaction management, expense categories, monthly budgets and a dashboard.
-Bootstrap is local, so the interface works offline.
-
 ## Tests and coverage (FT-02, FT-03)
 
 With the virtual environment active and `.env` copied:
@@ -270,3 +270,40 @@ registrations, safe redirects, CSRF, logout, user isolation, ordering and HTML e
 
 Sprint 1 (FT-01 to FT-23), pulled-forward search/export (FT-48 to FT-52 and FT-72),
 and recurring transactions (FT-75 to FT-76) are merged into `main`.
+
+## Sprint 3: warnings, charts and responsive dashboard (FT-44 to FT-58)
+
+Monthly budget warnings use 80% and 100% thresholds. New expenses are never blocked;
+an expense that would exceed its category's budget is saved and followed by a warning.
+The dashboard chart uses locally vendored Chart.js and sums category expenses for
+the selected month; its values are tested against the expense summary. Search,
+category/type/date filters and whitelisted sorting apply to both history and CSV.
+Mobile styles keep tables inside scrollable regions and stack dashboard controls.
+Budget thresholds and projection checks live in `transactions/budget_warnings.py`.
+The dashboard supplies chart labels and Decimal strings to `static/js/dashboard.js`;
+the Chart.js UMD bundle and MIT license are under `static/vendor/chart.js-4.5.1/`.
+Months without expenses render a textual empty state instead of a blank chart.
+
+## Sprint 4: month comparison and release quality (FT-59 to FT-69)
+
+The comparison page reports each user's expense totals by category across two
+selected months, plus the change and overall totals. The full built-in test suite
+includes a registration-to-budget end-to-end workflow and cross-account access
+checks. See the [User Guide](docs/user-guide.md) and
+[Technical Documentation](docs/technical-documentation.md) for use and architecture.
+
+The unassigned savings-goal backlog (FT-73, FT-74) is also implemented. Users can
+create a named target with an amount and date, then record dated contributions.
+Progress is calculated from contribution records, capped visually at 100%, while
+the full amount and contribution history remain visible. Goals and contributions
+are private to the goal owner.
+
+## Release preparation (FT-70 to FT-71)
+
+The project is prepared for deployment through Django's production settings and
+environment variables, but its hosting service, production database, domain and
+credentials must be supplied before a live deployment can be completed. The
+offline [final presentation](docs/final-presentation.html) and
+[live demo runbook](docs/live-demo.md) are included for the release walkthrough.
+Follow the [deployment checklist](docs/deployment-checklist.md) after the host is
+selected; no public service or paid resource has been created from this repository.

@@ -1,5 +1,6 @@
 # FT-29 to FT-34: Category ownership, defaults, management and transaction links.
 from datetime import date
+from unittest.mock import patch
 
 from django.test import TestCase
 from django.urls import reverse
@@ -78,11 +79,13 @@ class CategoryManagementTests(TestCase):
         self.assertFalse(Transaction.objects.exists())
 
     def test_recurring_expenses_keep_the_selected_category_when_generated(self):
-        response = self.client.post(reverse("transactions:recurring_add"), {
-            "transaction_type": "expense", "amount": "25.00", "description": "Groceries",
-            "frequency": "monthly", "start_date": "2026-10-01", "end_date": "",
-            "category": self.user.categories.get(name="Food").pk,
-        })
+        # FT-76: Keep this acceptance test independent of the wall-clock date.
+        with patch("transactions.recurring.timezone.localdate", return_value=date(2026, 10, 1)):
+            response = self.client.post(reverse("transactions:recurring_add"), {
+                "transaction_type": "expense", "amount": "25.00", "description": "Groceries",
+                "frequency": "monthly", "start_date": "2026-10-01", "end_date": "",
+                "category": self.user.categories.get(name="Food").pk,
+            })
         self.assertEqual(response.status_code, 302)
         rule = RecurringTransaction.objects.get(user=self.user)
         self.assertEqual(rule.category.name, "Food")
