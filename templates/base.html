@@ -24,6 +24,11 @@
             <ul class="navbar-nav me-auto">
               {% nav_active request 'transactions:dashboard' as dashboard_active %}
               <li class="nav-item"><a class="nav-link {{ dashboard_active }}" href="{% url 'transactions:dashboard' %}"{% if dashboard_active %} aria-current="page"{% endif %}>Dashboard</a></li>
+              {% nav_active request 'transactions:comparison' as comparison_active %}
+              <li class="nav-item"><a class="nav-link {{ comparison_active }}" href="{% url 'transactions:comparison' %}"{% if comparison_active %} aria-current="page"{% endif %}>Compare months</a></li>
+              {% nav_active request 'transactions:savings_goals' as savings_active %}
+              {% nav_active request 'transactions:savings_goal_add' as savings_add_active %}
+              {% if savings_active or savings_add_active %}{% with savings_active='active' %}<li class="nav-item"><a class="nav-link {{ savings_active }}" href="{% url 'transactions:savings_goals' %}" aria-current="page">Savings goals</a></li>{% endwith %}{% else %}<li class="nav-item"><a class="nav-link {{ savings_active }}" href="{% url 'transactions:savings_goals' %}"{% if savings_active %} aria-current="page"{% endif %}>Savings goals</a></li>{% endif %}
               {% nav_active request 'transactions:list' as list_active %}
               {% nav_active request 'transactions:edit' as edit_active %}
               {% nav_active request 'transactions:delete' as delete_active %}

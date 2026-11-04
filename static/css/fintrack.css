@@ -78,3 +78,16 @@ main { flex: 1; }
 .ft-budget-progress { min-width: 5rem; }
 .table td:last-child { white-space: nowrap; }
 .ft-dashboard-stat { min-height: 7rem; }
+
+/* FT-44 to FT-47: Clear budget warning emphasis and compact progress indicators. */
+.ft-budget-progress { height: 0.4rem; }
+.alert-warning { --bs-alert-color: #664d03; --bs-alert-bg: #fff3cd; --bs-alert-border-color: #ffecb5; }
+
+/* FT-53 to FT-58: Dashboard chart sizing and mobile-first spacing. */
+.ft-chart-wrap { position: relative; max-width: 34rem; height: 21rem; margin-inline: auto; }
+.ft-savings-card { max-width: 36rem; }
+.ft-goal-progress { height: 0.75rem; }
+@media (max-width: 575.98px) {
+  .ft-chart-wrap { height: 18rem; }
+  .table > :not(caption) > * > * { padding: 0.75rem; }
+}

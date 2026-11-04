@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load ui %}
+{# FT-73: Create a named, dated savings target. #}
+{% block title %}Create a savings goal — FinTrack{% endblock %}
+{% block content %}
+<a class="link-underline link-underline-opacity-0" href="{% url 'transactions:savings_goals' %}">← Back to savings goals</a>
+<section class="card ft-savings-card mx-auto mt-3"><div class="card-body p-4">
+  <h1 class="h3">Create a savings goal</h1>
+  <p class="text-body-secondary">Choose what you are saving for and when you hope to reach it.</p>
+  {% include "includes/form_errors.html" with form=form %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "includes/form_field.html" with field=form.name placeholder="e.g. Emergency fund" only %}
+    {% include "includes/form_field.html" with field=form.target_amount prefix="$" inputmode="decimal" placeholder="0.00" only %}
+    {% include "includes/form_field.html" with field=form.target_date only %}
+    <div class="d-flex flex-wrap gap-2"><button class="btn btn-primary" type="submit">Create goal</button><a class="btn btn-link" href="{% url 'transactions:savings_goals' %}">Cancel</a></div>
+  </form>
+</div></section>
+{% endblock %}

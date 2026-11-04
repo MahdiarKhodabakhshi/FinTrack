@@ -8,7 +8,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import User
-from transactions.models import Transaction
+from transactions.models import Category, Transaction
 
 
 class ExportTests(TestCase):
@@ -65,6 +65,14 @@ class ExportTests(TestCase):
 
     def test_no_matches_still_exports_header(self):
         self.assertEqual(self.rows(self.export(q='absent')), [['Date', 'Type', 'Description', 'Amount']])
+
+    def test_category_filter_is_preserved_by_csv_export(self):
+        food = Category.objects.get(user=self.user, name="Food")
+        self.expense.category = food
+        self.expense.save(update_fields=["category"])
+        rows = self.rows(self.export(category=food.pk))
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[1][2], "'=SUM(A1)")
 
     def test_signed_out_redirect_and_post_rejection(self):
         self.assertEqual(self.client.post(reverse('transactions:export')).status_code, 405)

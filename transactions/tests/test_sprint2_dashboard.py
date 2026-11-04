@@ -33,6 +33,11 @@ class DashboardTests(TestCase):
         self.assertEqual(row["remaining"], Decimal("-100.00"))
         self.assertContains(response, "Food")
         self.assertContains(response, "−$100.00")
+        # FT-56: Chart inputs reconcile exactly to the expense summary.
+        self.assertEqual(sum(map(Decimal, response.context["chart_values"])), response.context["expenses"])
+        self.assertEqual(response.context["chart_total"], response.context["expenses"])
+        self.assertContains(response, "Spending by category")
+        self.assertContains(response, "vendor/chart.js-4.5.1/chart.umd.min.js")
 
     def test_month_selector_rejects_bad_value_and_uses_current_month(self):
         response = self.client.get(reverse("transactions:dashboard") + "?month=not-a-month")
@@ -47,6 +52,8 @@ class DashboardTests(TestCase):
         self.assertContains(response, reverse("transactions:budgets"))
         self.assertContains(response, reverse("transactions:add"))
         self.assertEqual(response.context["income"], Decimal("0.00"))
+        self.assertEqual(response.context["chart_values"], [])
+        self.assertContains(response, "No expense data is available to chart for this month yet.")
 
     def test_root_sends_authenticated_users_to_dashboard(self):
         self.assertRedirects(self.client.get("/"), reverse("transactions:dashboard"), fetch_redirect_response=False)

@@ -7,6 +7,7 @@ from django import forms
 from django.db.models import Q, Sum
 from django.utils import timezone
 
+from .budget_warnings import budget_status
 from .models import Budget, Category, Transaction
 
 
@@ -72,11 +73,14 @@ def get_month_financials(user, month_start):
     for category in categories:
         spent = spent_by_category.get(category.pk, Decimal("0.00"))
         budget = budgets_by_category.get(category.pk)
+        warning_state, budget_percent = budget_status(spent, budget)
         category_rows.append({
             "category": category,
             "spent": spent,
             "budget": budget,
             "remaining": budget - spent if budget is not None else None,
+            "warning_state": warning_state,
+            "budget_percent": budget_percent,
         })
     return {
         "income": income,

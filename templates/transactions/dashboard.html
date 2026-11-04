@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load ui %}
+{% load static ui %}
 {# FT-39 to FT-43: Accessible month-level cash flow and category budget overview. #}
 {% block title %}Dashboard — FinTrack{% endblock %}
 {% block content %}
@@ -10,19 +10,46 @@
     <button class="btn btn-outline-primary mb-3" type="submit">View month</button>
   </form>
 </div>
+{% if category_rows %}
+  {% for row in category_rows %}
+    {% if row.warning_state == "near" or row.warning_state == "exceeded" %}
+      <div class="alert {% if row.warning_state == 'exceeded' %}alert-danger{% else %}alert-warning{% endif %} d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2" role="alert">
+        <span><strong>{{ row.category.name }}:</strong> {% if row.warning_state == "exceeded" %}You have reached or exceeded this budget.{% else %}You have used {{ row.budget_percent }}% of this budget.{% endif %} {{ row.spent|money }} of {{ row.budget|money }} spent.</span>
+        <a class="alert-link text-nowrap" href="{% url 'transactions:budgets' %}?month={{ month|date:'Y-m' }}&category={{ row.category.pk }}">Review budget</a>
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
 <div class="row g-3 mb-4">
   <div class="col-12 col-md-4"><section class="card h-100"><div class="card-body"><p class="text-body-secondary mb-1">Income</p><p class="h3 ft-money ft-income mb-0">{{ income|money }}</p></div></section></div>
   <div class="col-12 col-md-4"><section class="card h-100"><div class="card-body"><p class="text-body-secondary mb-1">Expenses</p><p class="h3 ft-money ft-expense mb-0">{{ expenses|money }}</p></div></section></div>
   <div class="col-12 col-md-4"><section class="card h-100"><div class="card-body"><p class="text-body-secondary mb-1">Net cash flow</p><p class="h3 ft-money {% if net < 0 %}ft-expense{% else %}ft-income{% endif %} mb-0">{{ net|money:"signed" }}</p></div></section></div>
 </div>
+<section class="card mb-4" aria-labelledby="category-chart-title">
+  <div class="card-body">
+    <div class="mb-3"><h2 id="category-chart-title" class="h5 mb-1">Spending by category</h2><p class="text-body-secondary mb-0">Expense totals for {{ month|date:"F Y" }}</p></div>
+    {% if chart_values %}
+      <div class="ft-chart-wrap"><canvas id="category-spending-chart" role="img" aria-label="Doughnut chart showing expense totals by category for {{ month|date:'F Y' }}"></canvas></div>
+      {{ chart_labels|json_script:"category-chart-labels" }}
+      {{ chart_values|json_script:"category-chart-values" }}
+      <p class="visually-hidden" id="category-chart-description">The chart total is {{ chart_total|money }}. Category amounts are listed in the category spending and budgets table below.</p>
+    {% else %}
+      <p class="text-body-secondary mb-0">No expense data is available to chart for this month yet.</p>
+    {% endif %}
+  </div>
+</section>
 <section class="card">
-  <div class="card-body border-bottom"><div class="d-flex flex-wrap justify-content-between align-items-center gap-2"><div><h2 class="h5 mb-1">Category spending and budgets</h2><p class="text-body-secondary mb-0">{{ month|date:"F Y" }}</p></div><a class="btn btn-outline-primary btn-sm" href="{% url 'transactions:budgets' %}?month={{ month|date:'Y-m' }}">Manage budgets</a></div></div>
+  <div class="card-body border-bottom"><div class="d-flex flex-wrap justify-content-between align-items-center gap-2"><div><h2 class="h5 mb-1">Category spending and budgets</h2><p class="text-body-secondary mb-0">{{ month|date:"F Y" }}</p></div><div class="d-flex flex-wrap gap-2"><a class="btn btn-outline-secondary btn-sm" href="{% url 'transactions:comparison' %}">Compare months</a><a class="btn btn-outline-primary btn-sm" href="{% url 'transactions:budgets' %}?month={{ month|date:'Y-m' }}">Manage budgets</a></div></div></div>
   {% if category_rows %}
   <div class="table-responsive"><table class="table align-middle mb-0"><caption class="visually-hidden">Spending and remaining monthly budgets by category</caption><thead><tr><th scope="col">Category</th><th scope="col" class="text-end">Spent</th><th scope="col" class="text-end">Budget</th><th scope="col" class="text-end">Remaining</th></tr></thead><tbody>
-    {% for row in category_rows %}<tr><th scope="row">{{ row.category.name }}{% if row.category.is_uncategorized %} <span class="badge text-bg-light border">Uncategorized</span>{% endif %}</th><td class="text-end ft-money text-nowrap">{{ row.spent|money }}</td><td class="text-end ft-money text-nowrap">{% if row.budget %}{{ row.budget|money }}{% else %}<span class="text-body-secondary">No budget</span>{% endif %}</td><td class="text-end ft-money text-nowrap">{% if row.remaining != None %}<span class="{% if row.remaining < 0 %}ft-expense{% else %}ft-income{% endif %}">{{ row.remaining|money:"signed" }}</span>{% else %}<span class="text-body-secondary">—</span>{% endif %}</td></tr>{% endfor %}
+    {% for row in category_rows %}<tr><th scope="row">{{ row.category.name }}{% if row.category.is_uncategorized %} <span class="badge text-bg-light border">Uncategorized</span>{% endif %}</th><td class="text-end ft-money text-nowrap">{{ row.spent|money }}</td><td class="text-end ft-money text-nowrap">{% if row.budget %}{{ row.budget|money }}{% if row.warning_state == "near" or row.warning_state == "exceeded" %}<div class="progress ft-budget-progress mt-2" role="progressbar" aria-label="{{ row.category.name }} budget used" aria-valuenow="{{ row.budget_percent }}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar {% if row.warning_state == 'exceeded' %}bg-danger{% else %}bg-warning{% endif %}" style="width: {% if row.budget_percent > 100 %}100{% else %}{{ row.budget_percent }}{% endif %}%"></div></div>{% endif %}{% else %}<span class="text-body-secondary">No budget</span>{% endif %}</td><td class="text-end ft-money text-nowrap">{% if row.remaining != None %}<span class="{% if row.remaining < 0 %}ft-expense{% else %}ft-income{% endif %}">{{ row.remaining|money:"signed" }}</span>{% else %}<span class="text-body-secondary">—</span>{% endif %}</td></tr>{% endfor %}
   </tbody></table></div>
   {% else %}
   <div class="card-body py-4"><p class="text-body-secondary mb-3">No category spending or budgets for this month yet.</p><a class="btn btn-primary" href="{% url 'transactions:budgets' %}?month={{ month|date:'Y-m' }}">Set a monthly budget</a> <a class="btn btn-link" href="{% url 'transactions:add' %}">Add a transaction</a></div>
   {% endif %}
 </section>
+{% endblock %}
+{% block extra_js %}
+  <script src="{% static 'vendor/chart.js-4.5.1/chart.umd.min.js' %}" defer></script>
+  <script src="{% static 'js/dashboard.js' %}" defer></script>
 {% endblock %}

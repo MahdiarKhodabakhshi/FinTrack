@@ -15,6 +15,7 @@ from .filters import TransactionFilterForm, apply_transaction_filters, filters_a
 from .forms import TransactionForm
 from .models import Transaction
 from .recurring import generate_due_transactions
+from .budget_warnings import projected_expense_warning
 
 
 class TransactionCreateView(LoginRequiredMixin, CreateView):
@@ -36,8 +37,16 @@ class TransactionCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        is_expense = form.instance.transaction_type == Transaction.TransactionType.EXPENSE
+        category, amount, date_value = form.instance.category, form.instance.amount, form.instance.date
         response = super().form_valid(form)
         messages.success(self.request, "Transaction added.")
+        if is_expense and category is not None:
+            warning = projected_expense_warning(
+                user=self.request.user, category=category, amount=amount, date=date_value,
+            )
+            if warning:
+                messages.warning(self.request, warning)
         return response
 
 
@@ -55,7 +64,7 @@ class TransactionListView(LoginRequiredMixin, ListView):
 
     # FT-48 to FT-51: Start with ownership, then reuse the shared filter pipeline.
     def get_queryset(self):
-        self.filter_form = TransactionFilterForm(self.request.GET or None)
+        self.filter_form = TransactionFilterForm(self.request.GET or None, user=self.request.user)
         return apply_transaction_filters(Transaction.objects.filter(user=self.request.user).select_related("category"), self.filter_form)
 
     def get_context_data(self, **kwargs):
@@ -88,7 +97,7 @@ def get_user_transaction_or_404(user, pk):
 @login_required
 @require_GET
 def transaction_export_csv(request):
-    form = TransactionFilterForm(request.GET or None)
+    form = TransactionFilterForm(request.GET or None, user=request.user)
     rows = apply_transaction_filters(Transaction.objects.filter(user=request.user), form)
     response = HttpResponse(content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="fintrack-transactions-{timezone.localdate():%Y-%m-%d}.csv"'

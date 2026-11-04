@@ -5,14 +5,22 @@ from .views import TransactionCreateView, TransactionListView, transaction_expor
 from .budget_views import BudgetListView
 from .category_views import CategoryCreateView, CategoryDeleteView, CategoryListView, CategoryUpdateView
 from .dashboard_views import DashboardView
+from .comparison_views import MonthComparisonView
 from .transaction_management import TransactionDeleteView, TransactionUpdateView
 
 from .recurring_views import RecurringCreateView, RecurringDeleteView, RecurringListView, recurring_toggle
+from .savings_views import SavingsGoalCreateView, savings_goal_contribute, savings_goal_list
 
 app_name = "transactions"
 urlpatterns = [
     # FT-29 to FT-43: User-scoped category, budget, dashboard and transaction routes.
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
+    # FT-59, FT-60: Compare category expenses across months.
+    path("compare/", MonthComparisonView.as_view(), name="comparison"),
+    # FT-73, FT-74: Create goals and record private dated contributions.
+    path("savings/", savings_goal_list, name="savings_goals"),
+    path("savings/add/", SavingsGoalCreateView.as_view(), name="savings_goal_add"),
+    path("savings/<int:pk>/contribute/", savings_goal_contribute, name="savings_goal_contribute"),
     path("categories/", CategoryListView.as_view(), name="categories"),
     path("categories/add/", CategoryCreateView.as_view(), name="category_add"),
     path("categories/<int:pk>/edit/", CategoryUpdateView.as_view(), name="category_edit"),

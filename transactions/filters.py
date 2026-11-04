@@ -1,7 +1,7 @@
 # FT-48, FT-49, FT-50, FT-51: Optional filters with safe, deterministic sorting.
 from django import forms
 
-from .models import Transaction
+from .models import Category, Transaction
 
 SORT_ORDERS = {
     "newest": ("-date", "-created_at", "-pk"),
@@ -17,10 +17,16 @@ class TransactionFilterForm(forms.Form):
     type = forms.ChoiceField(label="Type", choices=[("", "All types"), *Transaction.TransactionType.choices], required=False)
     date_from = forms.DateField(label="From", required=False, widget=forms.DateInput(attrs={"type": "date"}))
     date_to = forms.DateField(label="To", required=False, widget=forms.DateInput(attrs={"type": "date"}))
+    category = forms.ModelChoiceField(label="Category", queryset=Category.objects.none(), required=False, empty_label="All categories")
     sort = forms.ChoiceField(label="Sort by", required=False, initial="newest", choices=[
         ("newest", "Newest first"), ("oldest", "Oldest first"),
         ("amount_high", "Amount: high to low"), ("amount_low", "Amount: low to high"),
     ])
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user is not None:
+            self.fields["category"].queryset = Category.objects.filter(user=user).order_by("is_uncategorized", "name")
 
     def clean(self):
         cleaned = super().clean()
@@ -42,6 +48,8 @@ def apply_transaction_filters(queryset, form):
         queryset = queryset.filter(description__icontains=data["q"])
     if data.get("type"):
         queryset = queryset.filter(transaction_type=data["type"])
+    if data.get("category"):
+        queryset = queryset.filter(category=data["category"])
     if data.get("date_from"):
         queryset = queryset.filter(date__gte=data["date_from"])
     if data.get("date_to"):
@@ -51,4 +59,4 @@ def apply_transaction_filters(queryset, form):
 
 def filters_active(form):
     """FT-48 to FT-50: Keep Clear available for entered filters, including errors."""
-    return any(str(form[name].value() or "").strip() for name in ("q", "type", "date_from", "date_to"))
+    return any(str(form[name].value() or "").strip() for name in ("q", "type", "category", "date_from", "date_to"))

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load ui %}
+{# FT-59, FT-60: Compare private category expense totals across two months. #}
+{% block title %}Month comparison — FinTrack{% endblock %}
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
+  <div><h1 class="h3 mb-1">Month-to-month comparison</h1><p class="text-body-secondary mb-0">Compare your category spending across two months.</p></div>
+  <a class="btn btn-outline-secondary" href="{% url 'transactions:dashboard' %}">Back to dashboard</a>
+</div>
+<section class="card mb-4" aria-label="Choose months to compare">
+  <div class="card-body">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-12 col-sm-5">{% include "includes/form_field.html" with field=form.month_a only %}</div>
+      <div class="col-12 col-sm-5">{% include "includes/form_field.html" with field=form.month_b only %}</div>
+      <div class="col-12 col-sm-2"><button class="btn btn-primary w-100" type="submit">Compare</button></div>
+    </form>
+  </div>
+</section>
+<section class="card" aria-labelledby="comparison-title">
+  <div class="card-body border-bottom"><h2 id="comparison-title" class="h5 mb-1">{{ month_a|date:"F Y" }} and {{ month_b|date:"F Y" }}</h2><p class="text-body-secondary mb-0">Change is calculated as second month minus first month.</p></div>
+  {% if comparison_rows %}
+  <div class="table-responsive"><table class="table table-hover align-middle mb-0">
+    <caption class="visually-hidden">Expense comparison by category for {{ month_a|date:"F Y" }} and {{ month_b|date:"F Y" }}</caption>
+    <thead><tr><th scope="col">Category</th><th scope="col" class="text-end">{{ month_a|date:"M Y" }}</th><th scope="col" class="text-end">{{ month_b|date:"M Y" }}</th><th scope="col" class="text-end">Change</th></tr></thead>
+    <tbody>{% for row in comparison_rows %}<tr><th scope="row">{{ row.category.name }}</th><td class="text-end text-nowrap ft-money">{{ row.amount_a|money }}</td><td class="text-end text-nowrap ft-money">{{ row.amount_b|money }}</td><td class="text-end text-nowrap ft-money {% if row.change > 0 %}ft-expense{% elif row.change < 0 %}ft-income{% endif %}">{{ row.change|money:"signed" }}</td></tr>{% endfor %}</tbody>
+    <tfoot><tr class="fw-semibold"><th scope="row">Total expenses</th><td class="text-end text-nowrap ft-money">{{ total_a|money }}</td><td class="text-end text-nowrap ft-money">{{ total_b|money }}</td><td class="text-end text-nowrap ft-money {% if total_change > 0 %}ft-expense{% elif total_change < 0 %}ft-income{% endif %}">{{ total_change|money:"signed" }}</td></tr></tfoot>
+  </table></div>
+  {% else %}<div class="card-body"><p class="text-body-secondary mb-0">No expense transactions were recorded in either selected month.</p></div>{% endif %}
+</section>
+{% endblock %}

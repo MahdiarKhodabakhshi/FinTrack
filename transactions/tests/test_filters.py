@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from accounts.models import User
 from transactions.filters import TransactionFilterForm, apply_transaction_filters, filters_active
-from transactions.models import Transaction
+from transactions.models import Category, Transaction
 
 
 class FilterTests(TestCase):
@@ -37,6 +37,19 @@ class FilterTests(TestCase):
 
     def test_type_filter(self):
         self.assertEqual(self.ids(type='income'), [self.d.pk, self.a.pk])
+
+    def test_category_filter_is_user_scoped_and_combines_with_other_filters(self):
+        food = Category.objects.get(user=self.user, name="Food")
+        transport = Category.objects.get(user=self.user, name="Transport")
+        self.b.category = food
+        self.b.save(update_fields=["category"])
+        self.c.category = transport
+        self.c.save(update_fields=["category"])
+        self.assertEqual(self.ids(category=food.pk), [self.b.pk])
+        response = self.response(category=food.pk, type="expense")
+        self.assertEqual(list(response.context["transactions"]), [self.b])
+        self.assertContains(response, 'value="%s" selected' % food.pk)
+        self.assertTrue(response.context["filters_active"])
 
     def test_date_range_is_inclusive(self):
         self.assertEqual(self.ids(date_from='2026-01-01', date_to='2026-01-03'), [self.d.pk, self.c.pk, self.b.pk, self.a.pk])

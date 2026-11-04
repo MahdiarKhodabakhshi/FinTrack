@@ -139,3 +139,35 @@ class RecurringTransaction(models.Model):
     def clean(self):
         if self.category_id and self.user_id and self.category.user_id != self.user_id:
             raise ValidationError({"category": "A recurring category must belong to the rule owner."})
+
+
+# FT-73, FT-74: Named savings goals with dated, auditable contributions.
+class SavingsGoal(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="savings_goals")
+    name = models.CharField(max_length=100)
+    target_amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
+    target_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["target_date", "name"]
+        constraints = [models.CheckConstraint(condition=Q(target_amount__gt=0), name="savings_goal_target_positive")]
+
+    def __str__(self):
+        return f"{self.name} (${self.target_amount:,.2f})"
+
+
+class SavingsContribution(models.Model):
+    goal = models.ForeignKey(SavingsGoal, on_delete=models.CASCADE, related_name="contributions")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
+    date = models.DateField()
+    note = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-created_at"]
+        constraints = [models.CheckConstraint(condition=Q(amount__gt=0), name="savings_contribution_amount_positive")]
+
+    def __str__(self):
+        return f"${self.amount:,.2f} toward {self.goal.name} on {self.date:%Y-%m-%d}"
