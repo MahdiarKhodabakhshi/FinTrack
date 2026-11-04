@@ -3,3 +3,5 @@ python-dotenv>=1.0,<2
 dj-database-url>=2.3,<4
 psycopg[binary]>=3.2,<4
 coverage>=7.6,<8
+gunicorn>=23,<24; platform_system != "Windows"
+whitenoise>=6.9,<7

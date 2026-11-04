@@ -19,5 +19,6 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python manage.py check
       - run: python manage.py makemigrations --check --dry-run
+      - run: python manage.py collectstatic --no-input
       - run: coverage run manage.py test
       - run: coverage report
