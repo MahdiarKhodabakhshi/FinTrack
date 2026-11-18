@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.views import View
 
 from .months import MonthSelectionForm, current_month_start, get_month_financials
+from .spending_insights import get_monthly_spending_insight
 
 
 class DashboardView(LoginRequiredMixin, View):
@@ -17,6 +18,7 @@ class DashboardView(LoginRequiredMixin, View):
         month_form = MonthSelectionForm(request.GET or None, initial={"month": default})
         month = month_form.cleaned_data["month"] if month_form.is_valid() else default
         summary = get_month_financials(request.user, month)
+        insight = get_monthly_spending_insight(request.user, month)
         category_rows = summary["category_rows"]
         chart_rows = [row for row in category_rows if row["spent"] > 0]
         return render(request, self.template_name, {
@@ -25,5 +27,6 @@ class DashboardView(LoginRequiredMixin, View):
             "chart_labels": [row["category"].name for row in chart_rows],
             "chart_values": [str(row["spent"]) for row in chart_rows],
             "chart_total": sum((row["spent"] for row in chart_rows), start=Decimal("0.00")),
+            **insight,
             **summary,
         })

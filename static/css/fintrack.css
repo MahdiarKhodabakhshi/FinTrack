@@ -87,6 +87,9 @@ main { flex: 1; }
 .ft-chart-wrap { position: relative; max-width: 34rem; height: 21rem; margin-inline: auto; }
 .ft-savings-card { max-width: 36rem; }
 .ft-goal-progress { height: 0.75rem; }
+/* FT-40: Visually group the dashboard's plain-language spending insight. */
+.ft-insight-card { border-color: #cbdaf8; background: linear-gradient(135deg, #fff 0%, #f5f8ff 100%); }
+.ft-insight-stat { border: 1px solid var(--ft-border); border-radius: var(--bs-border-radius); background: var(--ft-surface); padding: 1rem; }
 @media (max-width: 575.98px) {
   .ft-chart-wrap { height: 18rem; }
   .table > :not(caption) > * > * { padding: 0.75rem; }

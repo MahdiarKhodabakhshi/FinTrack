@@ -25,7 +25,7 @@ In **Budgets**, select a category, month and positive spending limit. Saving an 
 
 ## Dashboard and comparisons
 
-The **Dashboard** shows monthly income, expenses, net cash flow, spending by category and budget warnings. Choose a month to review another period. The category chart has a text equivalent in the table below it, and months without expenses show a clear empty state. Choose **Compare months** to compare category expenses and total expenses between two selected months.
+The **Dashboard** shows monthly income, expenses, net cash flow, spending by category and budget warnings. Its spending insight calls out the highest-spend category and compares the current month through today with the same dates last month; completed months are compared in full. Choose a month to review another period. The category chart has a text equivalent in the table below it, and months without expenses show a clear empty state. Choose **Compare months** to compare category expenses and total expenses between two selected months.
 
 ## Recurring transactions
 

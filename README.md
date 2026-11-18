@@ -149,7 +149,7 @@ and positive-amount/end-date/occurrence constraints. Existing history is preserv
 
 | URL name | Path | Page and purpose |
 | --- | --- | --- |
-| `transactions:dashboard` | `/transactions/dashboard/` | `transactions/dashboard.html`: month selector, income, expenses, net cash flow and category budget rows |
+| `transactions:dashboard` | `/transactions/dashboard/` | `transactions/dashboard.html`: month selector, monthly totals, top-category insight, fair spending trend, chart and category budget rows |
 | `transactions:categories` | `/transactions/categories/` | `transactions/category_list.html`: starter and custom categories |
 | `transactions:category_add` | `/transactions/categories/add/` | POST adds a custom category; errors render on the category page |
 | `transactions:category_edit` | `/transactions/categories/<pk>/edit/` | `transactions/category_form.html`: rename a custom category |
@@ -180,6 +180,12 @@ month. Summary calculations use Decimal aggregation and never mix accounts. The
 signed-in home route redirects to the dashboard; login and registration continue
 to send users to transaction history. Category, budget, dashboard and transaction
 management tests live in `transactions/tests/test_sprint2_*.py`.
+
+The dashboard also highlights the largest expense category and compares spending
+against the same dates in the previous month when the selected month is still in
+progress. Completed months compare full months; a zero prior-period baseline is
+shown explicitly instead of an invented percentage. The logic is owner-scoped in
+`transactions/spending_insights.py`.
 
 ## Setup (FT-02)
 
